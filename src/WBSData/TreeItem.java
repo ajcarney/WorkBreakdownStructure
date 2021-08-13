@@ -1,15 +1,18 @@
 package WBSData;
 
+import javafx.scene.Node;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-interface TreeItem<T extends TreeItem> {
+public interface TreeItem<T extends TreeItem> {
     void setParent(T node);
     void addChild(T node);
     void addChildren(Collection<T> node);
     void deleteChild(T node);
     void deleteChildren(Collection<T> nodes);
 
+    int getLevel();
     ArrayList<T> getChildren();
     T getParent();
     T getRootNode();
@@ -17,4 +20,8 @@ interface TreeItem<T extends TreeItem> {
     ArrayList<T> getBranchNodes(T startNode);
     boolean isLeaf();
     boolean isRoot();
+
+    ArrayList<Node> renderTableRow();
+    void setChildrenVisible(boolean visible);
+    boolean areChildrenVisible();
 }

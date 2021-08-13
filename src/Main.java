@@ -1,4 +1,10 @@
+import Gui.TreeTable;
+import IOHandler.ImportHandler;
+import WBSData.WBSTreeItem;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -24,6 +30,35 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+//        Thread.setDefaultUncaughtExceptionHandler(Main::handleError);
+
+        BorderPane root = new BorderPane();
+
+        // start with a tab open (used for debugging, remove or comment out for release)
+        if(cliArgs.contains("--debug=true")) {
+            File file = new File("/home/aiden/Documents/WorkBreakdownStructure/test.wbs");
+            WBSTreeItem wbs = ImportHandler.readFile(file);
+            for(WBSTreeItem node : wbs.getTreeNodes()) {  // print tree for debugging
+                String text = "";
+                for(int i = 0; i < node.getLevel(); i++) {
+                    text += "  ";
+                }
+                System.out.println(text + node.getNodeName());
+            }
+
+            TreeTable table = new TreeTable();
+            table.setData(wbs, 1);
+            root.setCenter(table.getLayout());
+        }
+
+
+
+
+        Scene scene = new Scene(root, 1400, 800);
+        primaryStage.setTitle("DSM Editor");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        Platform.setImplicitExit(true);
 
     }
 

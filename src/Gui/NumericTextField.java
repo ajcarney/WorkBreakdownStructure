@@ -41,7 +41,7 @@ public class NumericTextField extends TextField {
      *
      * @param initialValue default text to display
      */
-    NumericTextField(Double initialValue) {
+    public NumericTextField(Double initialValue) {
         if(initialValue != null) {
             numericValue = new SimpleDoubleProperty(initialValue);
             setText(initialValue.toString());

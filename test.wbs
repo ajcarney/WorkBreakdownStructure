@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+    <name>WBS</name>
+    <uid>1</uid>
+    <duration>0</duration>
+    <person_duration>0</person_duration>
+    <resource>0</resource>
+    <notes1>0</notes1>
+    <notes2>0</notes2>
+    <children>
+        <node>
+            <name>lvl1-1</name>
+            <uid>2</uid>
+            <duration>0</duration>
+            <person_duration>0</person_duration>
+            <resource>0</resource>
+            <notes1>0</notes1>
+            <notes2>0</notes2>
+            <children>
+                <node>
+                    <name>lvl2-1</name>
+                    <uid>4</uid>
+                    <duration>0</duration>
+                    <person_duration>0</person_duration>
+                    <resource>0</resource>
+                    <notes1>0</notes1>
+                    <notes2>0</notes2>
+                    <children></children>
+                </node>
+            
+            </children>
+        </node>
+        <node>
+            <name>lvl1-2</name>
+            <uid>3</uid>
+            <duration>0</duration>
+            <person_duration>0</person_duration>
+            <resource>0</resource>
+            <notes1>0</notes1>
+            <notes2>0</notes2>
+            <children>
+                <node>
+                    <name>lvl2-2</name>
+                    <uid>5</uid>
+                    <duration>0</duration>
+                    <person_duration>0</person_duration>
+                    <resource>0</resource>
+                    <notes1>0</notes1>
+                    <notes2>0</notes2>
+                    <children></children>
+                </node>
+            </children>
+        </node>
+    </children>
+</node>
