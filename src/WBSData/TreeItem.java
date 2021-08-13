@@ -17,11 +17,11 @@ public interface TreeItem<T extends TreeItem> {
     T getParent();
     T getRootNode();
     ArrayList<T> getTreeNodes();
-    ArrayList<T> getBranchNodes(T startNode);
+    ArrayList<T> getBranchNodes(ArrayList<T> nodes, T startNode);
     boolean isLeaf();
     boolean isRoot();
 
     ArrayList<Node> renderTableRow();
-    void setChildrenVisible(boolean visible);
-    boolean areChildrenVisible();
+    void setExpanded(boolean visible);
+    boolean isExpanded();
 }

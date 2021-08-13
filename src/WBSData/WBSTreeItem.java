@@ -4,12 +4,10 @@ import Gui.NumericTextField;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.jdom2.Element;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Stack;
+import java.util.*;
 
 
 public class WBSTreeItem implements TreeItem<WBSTreeItem> {
@@ -61,6 +59,27 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         notes2 = "";
 
         isVisible = true;
+    }
+
+    public WBSTreeItem(WBSTreeItem copy) {
+        children = new ArrayList<>();
+        nodeName = copy.getNodeName();
+        uid = nodeName.hashCode() + Instant.now().toString().hashCode();
+        try {  // wait a millisecond to ensure that the next uid will for sure be unique even with the same name
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        duration = copy.getDuration();
+        personDuration = copy.getPersonDuration();
+        resource = copy.getResource();
+        predecessors = new ArrayList<>();  // does not copy predecessors
+        notes1 = copy.getNotes1();
+        notes2 = copy.getNotes2();
+
+        isVisible = copy.isExpanded();
+
     }
 
     private ArrayList<Integer> parsePredecessors(String s) {
@@ -152,22 +171,18 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
 
     @Override
     public ArrayList<WBSTreeItem> getTreeNodes() {
-        return getBranchNodes(getRootNode());
+        return getBranchNodes(new ArrayList<>(), getRootNode());
     }
 
     @Override
-    public ArrayList<WBSTreeItem> getBranchNodes(WBSTreeItem startNode) {
-        ArrayList<WBSTreeItem> nodes = new ArrayList<>();
-
-        Stack<WBSTreeItem> s = new Stack<>();
-        s.push(startNode);
-        while(!s.isEmpty()) {  // DFS of the tree
-            WBSTreeItem node = s.pop();
+    public ArrayList<WBSTreeItem> getBranchNodes(ArrayList<WBSTreeItem> nodes, WBSTreeItem node) {
+        nodes.add(node);
+        if(!node.getChildren().isEmpty()) {  // parse children nodes
             for(WBSTreeItem child : node.getChildren()) {
-                s.push(child);
+                getBranchNodes(nodes, child);
             }
-
-            nodes.add(node);
+        } else {
+            return null;  // no return value needed
         }
 
         return nodes;
@@ -290,12 +305,12 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     @Override
-    public void setChildrenVisible(boolean visible) {
+    public void setExpanded(boolean visible) {
         isVisible = visible;
     }
 
     @Override
-    public boolean areChildrenVisible() {
+    public boolean isExpanded() {
         return isVisible;
     }
 
@@ -317,12 +332,52 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         return null;
     }
 
+    public void shiftNodeForward() {
+        ArrayList<WBSTreeItem> siblings = getParent().getChildren();
+        int nodeIndex = siblings.indexOf(this);
+        if(nodeIndex < siblings.size() - 1) {
+            Collections.swap(siblings, nodeIndex, nodeIndex + 1);
+        }
+    }
+
+    public void shiftNodeBackward() {
+        ArrayList<WBSTreeItem> siblings = getParent().getChildren();
+        int nodeIndex = siblings.indexOf(this);
+        if(nodeIndex > 0) {
+            Collections.swap(siblings, nodeIndex, nodeIndex + 1);
+        }
+    }
+
+    public static WBSTreeItem copy(WBSTreeItem node) {
+        return new WBSTreeItem(node);
+    }
+
+    public static WBSTreeItem deepCopy(WBSTreeItem node, WBSTreeItem parent) {
+        WBSTreeItem newNode = new WBSTreeItem(node);
+        newNode.setParent(parent);
+
+        if(!node.getChildren().isEmpty()) {
+            for(WBSTreeItem child : node.getChildren()) {
+                deepCopy(child, newNode);
+            }
+        } else {
+            return null;  // no return value needed
+        }
+
+        return newNode;
+    }
+
+
     public int getShortName() {
         return shortName;
     }
 
     public void setShortName(int shortName) {
         this.shortName = shortName;
+    }
+
+    public int getUid() {
+        return uid;
     }
 
     public String getNodeName() {

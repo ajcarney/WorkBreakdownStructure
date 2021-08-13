@@ -209,6 +209,8 @@ public class FreezeGrid {
                 // update preferred sizes
                 // add the node to a test pane with the scene set, but not visible so the preferred size gets calculated
                 ghostPane.getChildren().add(cell.getNode());
+                boolean isManaged = cell.getNode().isManaged();
+                cell.getNode().setManaged(true);  // explicitly set managed to true to ensure all cells' sizes are checked
                 ghostPane.applyCss();
                 ghostPane.layout();
 
@@ -222,6 +224,7 @@ public class FreezeGrid {
                 }
 
                 ghostPane.getChildren().removeAll(ghostPane.getChildren());  // remove it so area has no parent
+                cell.getNode().setManaged(isManaged);
             }
 
             cells.add(newRow);

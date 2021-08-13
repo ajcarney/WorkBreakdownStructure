@@ -1,5 +1,6 @@
 import Gui.TreeTable;
 import IOHandler.ImportHandler;
+import WBSData.TreeItem;
 import WBSData.WBSTreeItem;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -10,6 +11,8 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 
@@ -47,6 +50,9 @@ public class Main extends Application {
             }
 
             TreeTable table = new TreeTable();
+            ArrayList<WBSTreeItem> sortedNodes = wbs.getTreeNodes();
+            Collections.sort(sortedNodes, Comparator.comparing(n -> n.getShortName()));
+
             table.setData(wbs, 1);
             root.setCenter(table.getLayout());
         }
