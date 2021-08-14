@@ -1,6 +1,10 @@
+import Gui.HeaderMenu;
+import Gui.TabView;
 import Gui.TreeTable;
+import IOHandler.ExportHandler;
 import IOHandler.ImportHandler;
 import WBSData.TreeItem;
+import WBSData.WBSHandler;
 import WBSData.WBSTreeItem;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -23,6 +27,9 @@ import java.util.Date;
  * @author Aiden Carney
  */
 public class Main extends Application {
+    private static final WBSHandler wbsHandler = new WBSHandler();
+    private static final TabView editor = new TabView(wbsHandler);
+    private static final HeaderMenu menu = new HeaderMenu(wbsHandler, editor);
 
     private static ArrayList<String> cliArgs = new ArrayList<>();
 
@@ -36,6 +43,8 @@ public class Main extends Application {
 //        Thread.setDefaultUncaughtExceptionHandler(Main::handleError);
 
         BorderPane root = new BorderPane();
+        root.setTop(menu.getMenuBar());
+        root.setCenter(editor.getTabPane());
 
         // start with a tab open (used for debugging, remove or comment out for release)
         if(cliArgs.contains("--debug=true")) {
@@ -51,10 +60,14 @@ public class Main extends Application {
 
             TreeTable table = new TreeTable();
             ArrayList<WBSTreeItem> sortedNodes = wbs.getTreeNodes();
-            Collections.sort(sortedNodes, Comparator.comparing(n -> n.getShortName()));
+            int uid = wbsHandler.addWBS(wbs, file);
+            editor.addTab(uid);
 
-            table.setData(wbs, 1);
-            root.setCenter(table.getLayout());
+            ExportHandler.saveWBSToFile(wbs, new File("/home/aiden/Documents/WorkBreakdownStructure/test2.wbs"));
+//            Collections.sort(sortedNodes, Comparator.comparing(n -> n.getShortName()));
+//
+//            table.setData(wbs, 1);
+//            root.setCenter(table.getLayout());
         }
 
 
@@ -91,7 +104,7 @@ public class Main extends Application {
         if(!logDir.exists()) logDir.mkdir();
 
         try {
-            Writer w = new FileWriter(logFile, true);  // open file in append mode
+            Writer w = new FileWriter(logFile, true);  // open file in append mode and write some stuff
 
             Date date = new Date();  // write time stamp
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");

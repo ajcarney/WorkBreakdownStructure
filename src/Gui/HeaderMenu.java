@@ -44,10 +44,8 @@ public class HeaderMenu {
     //File menu
         fileMenu = new Menu("_File");
 
-        Menu newFileMenu = new Menu("New...");
-
-        MenuItem newSymmetric = new MenuItem("Project Work Breakdown Structure");
-        newSymmetric.setOnAction(e -> {
+        MenuItem newFileMenu = new MenuItem("New");
+        newFileMenu.setOnAction(e -> {
             WBSTreeItem wbs = new WBSTreeItem("WBS");
             File file = new File("./untitled" + Integer.toString(defaultName));
             while(file.exists()) {  // make sure file does not exist
@@ -61,14 +59,11 @@ public class HeaderMenu {
             defaultName += 1;
         });
 
-        newFileMenu.getItems().addAll(newSymmetric);
-
-
 
         MenuItem openFile = new MenuItem("Open...");
         openFile.setOnAction( e -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.dsm"));  // dsm is the only file type usable
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
             File file = fileChooser.showOpenDialog(menuBar.getScene().getWindow());
             if(file != null) {  // make sure user did not just close out of the file chooser window
                 WBSTreeItem wbs = ImportHandler.readFile(file);
@@ -91,7 +86,7 @@ public class HeaderMenu {
             }
             if(this.wbsHandler.getWBSSaveFile(editor.getFocusedWBSUid()).getName().contains("untitled")) {
                 FileChooser fileChooser = new FileChooser();
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DSM File", "*.dsm"));  // dsm is the only file type usable
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
                 File fileName = fileChooser.showSaveDialog(menuBar.getScene().getWindow());
                 if(fileName != null) {
                     this.wbsHandler.setWBSSaveFile(editor.getFocusedWBSUid(), fileName);
@@ -109,7 +104,7 @@ public class HeaderMenu {
                 return;
             }
             FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DSM File", "*.dsm"));  // dsm is the only file type usable
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
             File fileName = fileChooser.showSaveDialog(menuBar.getScene().getWindow());
             if(fileName != null) {
                 int code = ExportHandler.saveWBSToFile(wbsHandler.getWBS(editor.getFocusedWBSUid()), fileName);  // TODO: add checking with the return code
@@ -155,6 +150,8 @@ public class HeaderMenu {
         fileMenu.getItems().add(new SeparatorMenuItem());
         fileMenu.getItems().add(exit);
 
+    // edit menu
+        editMenu = new Menu("_Edit");
 
     // View menu
         viewMenu = new Menu("_View");

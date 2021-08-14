@@ -12,8 +12,14 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -68,6 +74,42 @@ public class ExportHandler {
 
 
 
+    static private Element parseNodes(Element parentElement, WBSTreeItem node) {
+        Element nodeElement = new Element("node");
+        nodeElement.addContent(new Element("name").setText(node.getNodeName()));
+        nodeElement.addContent(new Element("uid").setText(String.valueOf(node.getUid())));
+        nodeElement.addContent(new Element("duration").setText(String.valueOf(node.getDuration())));
+        nodeElement.addContent(new Element("resource").setText(node.getResource()));
+        nodeElement.addContent(new Element("notes1").setText(node.getNotes1()));
+        nodeElement.addContent(new Element("notes2").setText(node.getNotes2()));
+        Element childElement = new Element("children");
+        nodeElement.addContent(childElement);
+
+        ArrayList<WBSTreeItem> predecessors = node.getPredecessors();
+        Element predecessorsElement = new Element("predecessors");
+        for(WBSTreeItem predecessor : predecessors) {
+            predecessorsElement.addContent(new Element("predecessor").setText(String.valueOf(predecessor.getUid())));
+        }
+        nodeElement.addContent(predecessorsElement);
+
+        if(parentElement != null) {
+            parentElement.addContent(nodeElement);
+        } else {
+            parentElement = nodeElement;
+        }
+
+        if(!node.getChildren().isEmpty()) {  // parse children nodes
+            for(WBSTreeItem child : node.getChildren()) {
+                parseNodes(childElement, child);
+            }
+        } else {
+            return null;  // no return value needed
+        }
+
+
+        return parentElement;
+    }
+
     /**
      * Saves the wbs to an xml file specified by the caller of the function. Clears
      * the wbs's wasModifiedFlag
@@ -79,7 +121,14 @@ public class ExportHandler {
     static public int saveWBSToFile(WBSTreeItem wbs, File file) {
         try {
             // TODO: implement
-//            wbs.clearWasModifiedFlag();
+            Element rootXMLNode = parseNodes(null, wbs);
+            Document doc = new Document(rootXMLNode);
+
+            XMLOutputter xmlOutput = new XMLOutputter();
+            xmlOutput.setFormat(Format.getPrettyFormat());  // TODO: change this to getCompactFormat() for release
+            xmlOutput.output(doc, new FileOutputStream(file));
+
+            wbs.clearWasModifiedFlag();
 
             return 1;  // file was successfully saved
         } catch(Exception e) {  // TODO: add better error handling and bring up an alert box

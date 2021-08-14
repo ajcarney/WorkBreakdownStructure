@@ -4,12 +4,10 @@ import IOHandler.ExportHandler;
 import WBSData.WBSHandler;
 import javafx.application.Platform;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.KeyCode;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.Vector;
 
 
 /**
@@ -54,10 +52,10 @@ public class TabView {
 
 
         // create current tabs
-        Set<Integer> keys = this.WBSHandler.getMatrices().keySet();
+        Set<Integer> keys = this.WBSHandler.getWBSs().keySet();
         for(int uid : keys) {
             addTab(uid);
-        };
+        }
 
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);  // any tab can be closed, but add event to be called on close
 
@@ -106,8 +104,8 @@ public class TabView {
             title += "*";
         }
         DraggableTab tab = new DraggableTab(title);
-//        WBSHandler.getWBSGuiHandler(WBSUid).refreshWBSEditorMutable();
-//        tab.setContent(WBSHandler.getWBSGuiHandler(WBSUid).getWBSEditor());
+        WBSHandler.refreshWBSGui(WBSUid);
+        tab.setContent(WBSHandler.getWBSGuiObject(WBSUid).getLayout());
         tab.setDetachable(false);
 
         tab.setOnCloseRequest(e -> {
@@ -209,8 +207,8 @@ public class TabView {
      */
     public void refreshTab() {
         if(getFocusedWBSUid() != null) {
-//            WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).refreshWBSEditorMutable();
-//            getFocusedTab().setContent(WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).getWBSEditor());
+            WBSHandler.refreshWBSGui(getFocusedWBSUid());
+            getFocusedTab().setContent(WBSHandler.getWBSGuiObject(getFocusedWBSUid()).getLayout());
         }
     }
 
@@ -246,6 +244,9 @@ public class TabView {
 
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).setFontSize(fontSizes[currentFontSizeIndex]);
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).refreshWBSEditorMutable();
+        // TODO: Add font sizing
+        WBSHandler.refreshWBSGui(getFocusedWBSUid());
+
         refreshTab();
     }
 
@@ -260,6 +261,8 @@ public class TabView {
 
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).setFontSize(fontSizes[currentFontSizeIndex]);
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).refreshWBSEditorMutable();
+        WBSHandler.refreshWBSGui(getFocusedWBSUid());
+
         refreshTab();
     }
 
@@ -278,6 +281,8 @@ public class TabView {
 
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).setFontSize(DEFAULT_FONT_SIZE);
 //        WBSHandler.getWBSGuiHandler(getFocusedWBSUid()).refreshWBSEditorMutable();
+        WBSHandler.refreshWBSGui(getFocusedWBSUid());
+
         refreshTab();
     }
 

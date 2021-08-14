@@ -6,15 +6,18 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 
-public class WBSContextMenu {
-    static ContextMenu getContextMenu(TreeItem node, Runnable updateGuiFunction) {
-        final ContextMenu contextMenu = new ContextMenu();
+public class TreeContextMenu {
+    private final ContextMenu contextMenu;
 
+    public TreeContextMenu() {
+        contextMenu = new ContextMenu();
+    }
+
+    ContextMenu getContextMenu(TreeItem node, Runnable updateGuiFunction) {
         // add child
         MenuItem addChild = new MenuItem("Add Child");
         addChild.setOnAction(e -> {
             node.addChild(new WBSTreeItem("New Node"));
-            System.out.println(((WBSTreeItem)node).getNodeName());
             updateGuiFunction.run();
         });
 
@@ -48,7 +51,7 @@ public class WBSContextMenu {
         // delete descendants
         MenuItem deleteDescendants = new MenuItem("Delete Descendants");
 
-
+        contextMenu.getItems().clear();
         contextMenu.getItems().addAll(
             addChild,
             addSibling,

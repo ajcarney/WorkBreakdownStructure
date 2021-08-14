@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -24,6 +25,8 @@ public class TreeTable {
 
     public TreeTable() {
         layout = new VBox();
+        layout.setPadding(new Insets(10));
+
         treeRowData = new HashMap<>();
         treeVisibleButtons = new HashMap<>();
         selectedRows = FXCollections.observableArrayList();
@@ -152,6 +155,7 @@ public class TreeTable {
                 cell.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
                 // callback to determine selected rows
+                TreeContextMenu menu = new TreeContextMenu();
                 cell.setOnMouseClicked(e -> {
                     // handle right click first
                     if(e.getButton().equals(MouseButton.SECONDARY)) {
@@ -160,7 +164,8 @@ public class TreeTable {
                         }
 
                         if(selectedRows.size() == 1) {
-                            WBSContextMenu.getContextMenu(selectedRows.get(0), (() -> setData(rootNode, indentedColumnIndex))).show(cell, e.getScreenX(), e.getScreenY());
+                            ContextMenu cellContextMenu = menu.getContextMenu(selectedRows.get(0), (() -> setData(rootNode, indentedColumnIndex)));
+                            cellContextMenu.show(cell, e.getScreenX(), e.getScreenY());
                         }
                         return;  // don't do anything else
                     }

@@ -1,5 +1,6 @@
 package WBSData;
 
+import Gui.TreeTable;
 import Gui.WBSGuiHandler;
 
 import java.io.File;
@@ -14,17 +15,19 @@ import java.util.HashMap;
 public class WBSHandler {
     private HashMap<Integer, WBSTreeItem> structures;
     private HashMap<Integer, File> wbsSaveNames;
-    private HashMap<Integer, WBSGuiHandler> wbsGuiHandlers;
+    private HashMap<Integer, TreeTable> wbsGuiObjects;
     private static int currentWBSUid = 0;
+
+    private static final int TABLE_INDENTED_COLUMN = 1;
 
 
     /**
-     * creates a new IOHandler object
+     * creates a new object
      */
     public WBSHandler() {
         structures = new HashMap<>();
         wbsSaveNames = new HashMap<>();
-        wbsGuiHandlers = new HashMap<>();
+        wbsGuiObjects = new HashMap<>();
     }
 
 
@@ -40,7 +43,8 @@ public class WBSHandler {
 
         this.structures.put(currentWBSUid, wbs);
         this.wbsSaveNames.put(currentWBSUid, file);
-        this.wbsGuiHandlers.put(currentWBSUid, new WBSGuiHandler(wbs, 12));
+        this.wbsGuiObjects.put(currentWBSUid, new TreeTable());
+        wbsGuiObjects.get(currentWBSUid).setData(wbs, TABLE_INDENTED_COLUMN);
 
         return currentWBSUid;
     }
@@ -51,7 +55,7 @@ public class WBSHandler {
      *
      * @return HashMap of wbs uids and WBSTreeItem objects  TODO: This should probably be immutable in the future
      */
-    public HashMap<Integer, WBSTreeItem> getMatrices() {
+    public HashMap<Integer, WBSTreeItem> getWBSs() {
         return structures;
     }
 
@@ -94,8 +98,8 @@ public class WBSHandler {
      * @param wbsUid the save path for wbs with uid wbsUid
      * @return WBSGuiHandler object of the wbs
      */
-    public WBSGuiHandler getWBSGuiHandler(int wbsUid) {
-        return wbsGuiHandlers.get(wbsUid);
+    public TreeTable getWBSGuiObject(int wbsUid) {
+        return wbsGuiObjects.get(wbsUid);
     }
 
 
@@ -104,15 +108,15 @@ public class WBSHandler {
      *
      * @return WBSGuiHandler HashMap
      */
-    public HashMap<Integer, WBSGuiHandler> getWBSGuiHandlers() {
-        return wbsGuiHandlers;
+    public HashMap<Integer, TreeTable> getWBSGuiObjects() {
+        return wbsGuiObjects;
     }
 
 
     /**
      * Updates the default save location of a wbs
      *
-     * @param wbsUid the wbs to update the save path of
+     * @param wbsUid    the wbs to update the save path of
      * @param newFile   File object of the new save path
      */
     public void setWBSSaveFile(int wbsUid, File newFile) {
@@ -130,8 +134,7 @@ public class WBSHandler {
      */
     public boolean isWBSSaved(int wbsUid) {
         // TODO:
-        return false;
-//        return !structures.get(wbsUid).getWasModified();
+        return !structures.get(wbsUid).getWasModified();
     }
 
 
@@ -143,7 +146,12 @@ public class WBSHandler {
     public void removeWBS(int wbsUid) {
         structures.remove(wbsUid);
         wbsSaveNames.remove(wbsUid);
-        wbsGuiHandlers.remove(wbsUid);
+        wbsGuiObjects.remove(wbsUid);
+    }
+    
+    
+    public void refreshWBSGui(int wbsUid) {
+        wbsGuiObjects.get(wbsUid).setData(structures.get(wbsUid), TABLE_INDENTED_COLUMN);
     }
 
 }

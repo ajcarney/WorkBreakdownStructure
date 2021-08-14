@@ -18,9 +18,7 @@ public class ImportHandler {
     static private WBSTreeItem parseNodes(WBSTreeItem parentNode, Element element) {
         WBSTreeItem n = new WBSTreeItem(element.getChild("name").getText(), Integer.parseInt(element.getChild("uid").getText()));
         n.setParent(parentNode);
-        n.setShortName(Integer.parseInt(element.getChild("short_name").getText()));
         n.setDuration(Double.parseDouble(element.getChild("duration").getText()));
-        n.setPersonDuration(Double.parseDouble(element.getChild("person_duration").getText()));
         n.setResource(element.getChild("resource").getText());
         n.setNotes1(element.getChild("notes1").getText());
         n.setNotes2(element.getChild("notes2").getText());
