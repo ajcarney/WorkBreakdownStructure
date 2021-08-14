@@ -1,5 +1,6 @@
 package WBSData;
 
+import Gui.TreeContextMenu;
 import Gui.TreeTable;
 import Gui.WBSGuiHandler;
 
@@ -44,7 +45,6 @@ public class WBSHandler {
         this.structures.put(currentWBSUid, wbs);
         this.wbsSaveNames.put(currentWBSUid, file);
         this.wbsGuiObjects.put(currentWBSUid, new TreeTable());
-        wbsGuiObjects.get(currentWBSUid).setData(wbs, TABLE_INDENTED_COLUMN);
 
         return currentWBSUid;
     }

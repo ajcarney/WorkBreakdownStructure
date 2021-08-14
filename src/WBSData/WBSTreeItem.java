@@ -28,7 +28,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     private String nodeName;
     private double duration;
     private String resource;
-    private final ArrayList<WBSTreeItem> predecessors;
+    private final ArrayList<Integer> predecessors;  // list of uids of predecessors
     private String notes1;
     private String notes2;
 
@@ -92,10 +92,14 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
 
     private static ArrayList<Integer> parsePredecessors(String s) {
         ArrayList<Integer> integers = new ArrayList<>();
+        if(s.isEmpty()) {
+            return integers;
+        }
 
         ArrayList<String> numbers = new ArrayList<>(Arrays.asList(s.split(",")));
         for(String number : numbers) {
             try {
+                number = number.trim();  // remove whitespace before checking for integer
                 int n = Integer.parseInt(number);
                 integers.add(n);
             } catch(NumberFormatException nfe){
@@ -221,6 +225,12 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     @Override
+    public ArrayList<WBSTreeItem> getSortedTreeNodes() {
+        updateShortNames();
+        return getTreeNodes();
+    }
+
+    @Override
     public ArrayList<WBSTreeItem> getBranchNodes(ArrayList<WBSTreeItem> nodes, WBSTreeItem node) {
         nodes.add(node);
         if(!node.getChildren().isEmpty()) {  // parse children nodes
@@ -292,6 +302,8 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
                 setNodeName(newValue);
                 wasModified = true;
             });
+            nameEntry.setBackground(new Background(new BackgroundFill(Color.color(0.8, 0.8, 0.8), new CornerRadii(3), new Insets(0))));
+
 
             NumericTextField durationEntry = new NumericTextField(duration);
             durationEntry.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -320,9 +332,13 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
             });
 
             String startText = "";
-            for (WBSTreeItem node : predecessors) {
-                startText += node.getShortName() + ", ";
+            for (int uid : predecessors) {
+                startText += getNodeByUid(uid).getShortName() + ", ";
             }
+            if(predecessors.size() > 0) {  // remove last two characters of string because they will just be a string and a comma
+                startText = startText.substring(0, startText.length() - 2);
+            }
+
             TextField predecessorsEntry = new TextField(startText);
             predecessorsEntry.textProperty().addListener((observable, oldValue, newValue) -> {
                 ArrayList<Integer> shortNames = parsePredecessors(newValue);
@@ -332,8 +348,12 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
                     predecessorsEntry.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1), new CornerRadii(3), new Insets(0))));
                     predecessors.clear();
                     for (int sName : shortNames) {
-                        WBSTreeItem node = getNodeByShortName(sName);
-                        predecessors.add(node);
+                        WBSTreeItem predecessor = getNodeByShortName(sName);
+                        if(predecessor == null) {
+                            predecessorsEntry.setBackground(new Background(new BackgroundFill(Color.color(0.9, 0.2, 0.1), new CornerRadii(3), new Insets(0))));
+                        } else {
+                            addPredecessor(predecessor.getUid());
+                        }
                     }
                 }
                 wasModified = true;
@@ -375,6 +395,13 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         return isVisible;
     }
 
+    public void updateShortNames() {
+        ArrayList<WBSTreeItem> nodes = getTreeNodes();
+        for(int i=0; i<nodes.size(); i++) {
+            nodes.get(i).setShortName(i);
+        }
+    }
+
     public WBSTreeItem getNodeByName(String name) {
         for(WBSTreeItem node : getTreeNodes()) {
             if(node.getNodeName().equals(name)) {
@@ -387,6 +414,15 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     public WBSTreeItem getNodeByShortName(int sName) {
         for(WBSTreeItem node : getTreeNodes()) {
             if(node.getShortName() == sName) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    public WBSTreeItem getNodeByUid(int uid) {
+        for(WBSTreeItem node : getTreeNodes()) {
+            if(node.getUid() == uid) {
                 return node;
             }
         }
@@ -465,7 +501,6 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     public double getPersonDuration() {
         double personDuration = 0;
         ArrayList<WBSTreeItem> nodes = getBranchNodes(new ArrayList<>(), this);
-        System.out.println(nodes + " " + this);
         for(WBSTreeItem node : nodes) {
             double multiplier = parseResourceMultiplier(node.getResource());
             if(multiplier == -1) {
@@ -486,8 +521,12 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         wasModified = true;
     }
 
-    public ArrayList<WBSTreeItem> getPredecessors() {
+    public ArrayList<Integer> getPredecessors() {
         return predecessors;
+    }
+
+    public void addPredecessor(int uid) {
+        predecessors.add(uid);
     }
 
     public String getNotes1() {

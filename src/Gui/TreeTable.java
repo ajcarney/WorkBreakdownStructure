@@ -105,7 +105,7 @@ public class TreeTable {
 
 
     public void setData(TreeItem rootNode, int indentedColumnIndex) {
-        ArrayList<TreeItem> sortedNodes = rootNode.getTreeNodes();
+        ArrayList<TreeItem> sortedNodes = rootNode.getSortedTreeNodes();
         ArrayList<ArrayList<HBox>> data = new ArrayList<>();
         treeRowData.clear();
         treeVisibleButtons.clear();

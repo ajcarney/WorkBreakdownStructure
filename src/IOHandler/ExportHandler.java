@@ -85,10 +85,10 @@ public class ExportHandler {
         Element childElement = new Element("children");
         nodeElement.addContent(childElement);
 
-        ArrayList<WBSTreeItem> predecessors = node.getPredecessors();
+        ArrayList<Integer> predecessors = node.getPredecessors();
         Element predecessorsElement = new Element("predecessors");
-        for(WBSTreeItem predecessor : predecessors) {
-            predecessorsElement.addContent(new Element("predecessor").setText(String.valueOf(predecessor.getUid())));
+        for(int predecessor : predecessors) {
+            predecessorsElement.addContent(new Element("predecessor").setText(String.valueOf(predecessor)));
         }
         nodeElement.addContent(predecessorsElement);
 

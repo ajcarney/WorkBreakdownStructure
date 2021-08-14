@@ -48,7 +48,7 @@ public class Main extends Application {
 
         // start with a tab open (used for debugging, remove or comment out for release)
         if(cliArgs.contains("--debug=true")) {
-            File file = new File("/home/aiden/Documents/WorkBreakdownStructure/test.wbs");
+            File file = new File("/home/aiden/Documents/WorkBreakdownStructure/test2.wbs");
             WBSTreeItem wbs = ImportHandler.readFile(file);
             for(WBSTreeItem node : wbs.getTreeNodes()) {  // print tree for debugging
                 String text = "";
@@ -59,6 +59,7 @@ public class Main extends Application {
             }
 
             TreeTable table = new TreeTable();
+            wbs.updateShortNames();
             ArrayList<WBSTreeItem> sortedNodes = wbs.getTreeNodes();
             int uid = wbsHandler.addWBS(wbs, file);
             editor.addTab(uid);

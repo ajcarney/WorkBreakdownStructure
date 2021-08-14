@@ -22,6 +22,11 @@ public class ImportHandler {
         n.setResource(element.getChild("resource").getText());
         n.setNotes1(element.getChild("notes1").getText());
         n.setNotes2(element.getChild("notes2").getText());
+        if(!element.getChild("predecessors").getChildren().isEmpty()) {
+            for(Element predecessor : element.getChild("predecessors").getChildren()) {
+                n.addPredecessor(Integer.parseInt(predecessor.getText()));
+            }
+        }
 
         if(!element.getChild("children").getChildren().isEmpty()) {  // parse children nodes
             for(Element child : element.getChild("children").getChildren()) {

@@ -17,6 +17,7 @@ public interface TreeItem<T extends TreeItem> {
     T getParent();
     T getRootNode();
     ArrayList<T> getTreeNodes();
+    ArrayList<T> getSortedTreeNodes();
     ArrayList<T> getBranchNodes(ArrayList<T> nodes, T startNode);
     boolean isLeaf();
     boolean isRoot();
