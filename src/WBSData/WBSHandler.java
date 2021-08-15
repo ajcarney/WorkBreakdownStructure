@@ -1,20 +1,18 @@
 package WBSData;
 
-import Gui.TreeContextMenu;
 import Gui.TreeTable;
-import Gui.WBSGuiHandler;
 
 import java.io.File;
 import java.util.HashMap;
 
 /**
- * Class to manage WBSTreeItem classes and read and write to different file formats
+ * Class to manage WBSVisualTreeItem classes and read and write to different file formats
  * TODO: add validation of file paths when they are passed as parameters
  *
  * @author: Aiden Carney
  */
 public class WBSHandler {
-    private HashMap<Integer, WBSTreeItem> structures;
+    private HashMap<Integer, WBSVisualTreeItem> structures;
     private HashMap<Integer, File> wbsSaveNames;
     private HashMap<Integer, TreeTable> wbsGuiObjects;
     private static int currentWBSUid = 0;
@@ -35,11 +33,11 @@ public class WBSHandler {
     /**
      * Adds a wbs to be handled and returns the unique id assigned to it
      *
-     * @param wbs WBSTreeItem object of the wbs to be added
+     * @param wbs WBSVisualTreeItem object of the wbs to be added
      * @param file   File object of the location to save the wbs to
      * @return the unique id given to the wbs so that it can be tracked
      */
-    public int addWBS(WBSTreeItem wbs, File file) {
+    public int addWBS(WBSVisualTreeItem wbs, File file) {
         currentWBSUid += 1;
 
         this.structures.put(currentWBSUid, wbs);
@@ -53,9 +51,9 @@ public class WBSHandler {
     /**
      * Returns the structures HashMap
      *
-     * @return HashMap of wbs uids and WBSTreeItem objects  TODO: This should probably be immutable in the future
+     * @return HashMap of wbs uids and WBSVisualTreeItem objects  TODO: This should probably be immutable in the future
      */
-    public HashMap<Integer, WBSTreeItem> getWBSs() {
+    public HashMap<Integer, WBSVisualTreeItem> getWBSs() {
         return structures;
     }
 
@@ -71,12 +69,12 @@ public class WBSHandler {
 
 
     /**
-     * Returns a WBSTreeItem object
+     * Returns a WBSVisualTreeItem object
      *
      * @param uid the uid of the wbs to return
-     * @return WBSTreeItem object of the wbs
+     * @return WBSVisualTreeItem object of the wbs
      */
-    public WBSTreeItem getWBS(int uid) {
+    public WBSVisualTreeItem getWBS(int uid) {
         return structures.get(uid);
     }
 
@@ -151,7 +149,7 @@ public class WBSHandler {
     
     
     public void refreshWBSGui(int wbsUid) {
-        wbsGuiObjects.get(wbsUid).setData(structures.get(wbsUid), TABLE_INDENTED_COLUMN);
+        wbsGuiObjects.get(wbsUid).setData(structures.get(wbsUid), TABLE_INDENTED_COLUMN, null);
     }
 
 }

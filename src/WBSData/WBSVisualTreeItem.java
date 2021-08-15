@@ -19,9 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class WBSTreeItem implements TreeItem<WBSTreeItem> {
-    private final ArrayList<WBSTreeItem> children;
-    private WBSTreeItem parent;
+public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
+    private final ArrayList<WBSVisualTreeItem> children;
+    private WBSVisualTreeItem parent;
     private int shortName;
     private final int uid;
 
@@ -35,7 +35,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     private boolean isVisible;
     private boolean wasModified;
 
-    public WBSTreeItem(String nodeName) {
+    public WBSVisualTreeItem(String nodeName) {
         children = new ArrayList<>();
         this.uid = nodeName.hashCode() + Instant.now().toString().hashCode();
         try {  // wait a millisecond to ensure that the next uid will for sure be unique even with the same name
@@ -55,7 +55,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         wasModified = true;
     }
 
-    public WBSTreeItem(String nodeName, Integer uid) {
+    public WBSVisualTreeItem(String nodeName, Integer uid) {
         children = new ArrayList<>();
         this.uid = uid;
         this.nodeName = nodeName;
@@ -70,7 +70,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         wasModified = false;
     }
 
-    public WBSTreeItem(WBSTreeItem copy) {
+    public WBSVisualTreeItem(WBSVisualTreeItem copy) {
         children = new ArrayList<>();
         nodeName = copy.getNodeName();
         uid = nodeName.hashCode() + Instant.now().toString().hashCode();  // create new uid
@@ -88,6 +88,10 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
 
         isVisible = copy.isExpanded();
         wasModified = true;
+    }
+
+    public WBSVisualTreeItem getNewNode() {
+        return new WBSVisualTreeItem("New Node");
     }
 
     private static ArrayList<Integer> parsePredecessors(String s) {
@@ -144,39 +148,39 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     @Override
-    public void addChild(WBSTreeItem node) {
+    public void addChild(WBSVisualTreeItem node) {
         children.add(node);
         node.setParent(this);
         wasModified = true;
     }
 
     @Override
-    public void addChildren(Collection<WBSTreeItem> nodes) {
+    public void addChildren(Collection<WBSVisualTreeItem> nodes) {
         children.addAll(nodes);
-        for(WBSTreeItem node : nodes) {
+        for(WBSVisualTreeItem node : nodes) {
             node.setParent(this);
         }
         wasModified = true;
     }
 
     @Override
-    public void deleteChild(WBSTreeItem node) {
+    public void deleteChild(WBSVisualTreeItem node) {
         children.remove(node);
         node.setParent(null);
         wasModified = true;
     }
 
     @Override
-    public void deleteChildren(Collection<WBSTreeItem> nodes) {
+    public void deleteChildren(Collection<WBSVisualTreeItem> nodes) {
         children.removeAll(nodes);
-        for(WBSTreeItem node : nodes) {
+        for(WBSVisualTreeItem node : nodes) {
             node.setParent(null);
         }
         wasModified = true;
     }
 
     @Override
-    public void setParent(WBSTreeItem node) {
+    public void setParent(WBSVisualTreeItem node) {
         if(parent != null) {
             parent.getChildren().remove(this);  // remove child from previous parent if not null
         }
@@ -190,7 +194,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     @Override
     public int getLevel() {
         int level = 0;
-        WBSTreeItem currentNode = this;
+        WBSVisualTreeItem currentNode = this;
         while(currentNode.getParent() != null) {
             currentNode = currentNode.getParent();
             level += 1;
@@ -200,18 +204,18 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     @Override
-    public ArrayList<WBSTreeItem> getChildren() {
+    public ArrayList<WBSVisualTreeItem> getChildren() {
         return children;
     }
 
     @Override
-    public WBSTreeItem getParent() {
+    public WBSVisualTreeItem getParent() {
         return parent;
     }
 
     @Override
-    public WBSTreeItem getRootNode() {
-        WBSTreeItem currentNode = this;
+    public WBSVisualTreeItem getRootNode() {
+        WBSVisualTreeItem currentNode = this;
         while(currentNode.getParent() != null) {
             currentNode = currentNode.getParent();
         }
@@ -220,21 +224,21 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     @Override
-    public ArrayList<WBSTreeItem> getTreeNodes() {
+    public ArrayList<WBSVisualTreeItem> getTreeNodes() {
         return getBranchNodes(new ArrayList<>(), getRootNode());
     }
 
     @Override
-    public ArrayList<WBSTreeItem> getSortedTreeNodes() {
+    public ArrayList<WBSVisualTreeItem> getSortedTreeNodes() {
         updateShortNames();
         return getTreeNodes();
     }
 
     @Override
-    public ArrayList<WBSTreeItem> getBranchNodes(ArrayList<WBSTreeItem> nodes, WBSTreeItem node) {
+    public ArrayList<WBSVisualTreeItem> getBranchNodes(ArrayList<WBSVisualTreeItem> nodes, WBSVisualTreeItem node) {
         nodes.add(node);
         if(!node.getChildren().isEmpty()) {  // parse children nodes
-            for(WBSTreeItem child : node.getChildren()) {
+            for(WBSVisualTreeItem child : node.getChildren()) {
                 getBranchNodes(nodes, child);
             }
         } else if(nodes.size() > 1) {  // ensure at least one recursive call before returning null
@@ -305,11 +309,21 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
             nameEntry.setBackground(new Background(new BackgroundFill(Color.color(0.8, 0.8, 0.8), new CornerRadii(3), new Insets(0))));
 
 
-            NumericTextField durationEntry = new NumericTextField(duration);
-            durationEntry.textProperty().addListener((observable, oldValue, newValue) -> {
-                setDuration(durationEntry.getNumericValue());
-                wasModified = true;
-            });
+            Node durationEntry;
+            if(isLeaf()) {
+                durationEntry = new NumericTextField(duration);
+                ((NumericTextField)durationEntry).textProperty().addListener((observable, oldValue, newValue) -> {
+                    setDuration(((NumericTextField)durationEntry).getNumericValue());
+                    wasModified = true;
+                });
+            } else {
+                durationEntry = new Label(String.valueOf(duration));
+            }
+//            NumericTextField durationEntry = new NumericTextField(duration);
+//            durationEntry.textProperty().addListener((observable, oldValue, newValue) -> {
+//                setDuration(durationEntry.getNumericValue());
+//                wasModified = true;
+//            });
 
             double personDuration = getPersonDuration();
             Label personDurationLabel = new Label();
@@ -348,7 +362,7 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
                     predecessorsEntry.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1), new CornerRadii(3), new Insets(0))));
                     predecessors.clear();
                     for (int sName : shortNames) {
-                        WBSTreeItem predecessor = getNodeByShortName(sName);
+                        WBSVisualTreeItem predecessor = getNodeByShortName(sName);
                         if(predecessor == null) {
                             predecessorsEntry.setBackground(new Background(new BackgroundFill(Color.color(0.9, 0.2, 0.1), new CornerRadii(3), new Insets(0))));
                         } else {
@@ -396,14 +410,14 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
     }
 
     public void updateShortNames() {
-        ArrayList<WBSTreeItem> nodes = getTreeNodes();
+        ArrayList<WBSVisualTreeItem> nodes = getTreeNodes();
         for(int i=0; i<nodes.size(); i++) {
             nodes.get(i).setShortName(i);
         }
     }
 
-    public WBSTreeItem getNodeByName(String name) {
-        for(WBSTreeItem node : getTreeNodes()) {
+    public WBSVisualTreeItem getNodeByName(String name) {
+        for(WBSVisualTreeItem node : getTreeNodes()) {
             if(node.getNodeName().equals(name)) {
                 return node;
             }
@@ -411,8 +425,8 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         return null;
     }
 
-    public WBSTreeItem getNodeByShortName(int sName) {
-        for(WBSTreeItem node : getTreeNodes()) {
+    public WBSVisualTreeItem getNodeByShortName(int sName) {
+        for(WBSVisualTreeItem node : getTreeNodes()) {
             if(node.getShortName() == sName) {
                 return node;
             }
@@ -420,8 +434,8 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         return null;
     }
 
-    public WBSTreeItem getNodeByUid(int uid) {
-        for(WBSTreeItem node : getTreeNodes()) {
+    public WBSVisualTreeItem getNodeByUid(int uid) {
+        for(WBSVisualTreeItem node : getTreeNodes()) {
             if(node.getUid() == uid) {
                 return node;
             }
@@ -429,8 +443,9 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         return null;
     }
 
+    @Override
     public void shiftNodeForward() {
-        ArrayList<WBSTreeItem> siblings = getParent().getChildren();
+        ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
         int nodeIndex = siblings.indexOf(this);
         if(nodeIndex < siblings.size() - 1) {
             Collections.swap(siblings, nodeIndex, nodeIndex + 1);
@@ -438,25 +453,50 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
         wasModified = true;
     }
 
+    @Override
     public void shiftNodeBackward() {
-        ArrayList<WBSTreeItem> siblings = getParent().getChildren();
+        ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
         int nodeIndex = siblings.indexOf(this);
         if(nodeIndex > 0) {
-            Collections.swap(siblings, nodeIndex, nodeIndex + 1);
+            Collections.swap(siblings, nodeIndex, nodeIndex - 1);
         }
         wasModified = true;
     }
 
-    public static WBSTreeItem copy(WBSTreeItem node) {
-        return new WBSTreeItem(node);
+    @Override
+    public void bringNodeToFront() {
+        ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
+        int nodeIndex = siblings.indexOf(this);
+        while(nodeIndex < siblings.size() - 1) {
+            Collections.swap(siblings, nodeIndex, nodeIndex + 1);
+            nodeIndex = siblings.indexOf(this);
+        }
+        wasModified = true;
     }
 
-    public static WBSTreeItem deepCopy(WBSTreeItem node, WBSTreeItem parent) {
-        WBSTreeItem newNode = new WBSTreeItem(node);
+    @Override
+    public void bringNodeToBack() {
+        ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
+        int nodeIndex = siblings.indexOf(this);
+        while(nodeIndex > 0) {
+            Collections.swap(siblings, nodeIndex, nodeIndex - 1);
+            nodeIndex = siblings.indexOf(this);
+        }
+        wasModified = true;
+    }
+
+    @Override
+    public WBSVisualTreeItem copy(WBSVisualTreeItem node) {
+        return new WBSVisualTreeItem(node);
+    }
+
+    @Override
+    public WBSVisualTreeItem deepCopy(WBSVisualTreeItem node, WBSVisualTreeItem parent) {
+        WBSVisualTreeItem newNode = new WBSVisualTreeItem(node);
         newNode.setParent(parent);
 
         if(!node.getChildren().isEmpty()) {
-            for(WBSTreeItem child : node.getChildren()) {
+            for(WBSVisualTreeItem child : node.getChildren()) {
                 deepCopy(child, newNode);
             }
         } else {
@@ -495,18 +535,27 @@ public class WBSTreeItem implements TreeItem<WBSTreeItem> {
 
     public void setDuration(double duration) {
         this.duration = duration;
+        WBSVisualTreeItem parent = getParent();
+        if(parent != null) {
+            double newParentDuration = 0;
+            for(WBSVisualTreeItem child : parent.getChildren()) {
+                newParentDuration += child.getDuration();
+            }
+            parent.setDuration(newParentDuration);  // recursively propagate to root updating duration
+        }
         wasModified = true;
     }
 
     public double getPersonDuration() {
         double personDuration = 0;
-        ArrayList<WBSTreeItem> nodes = getBranchNodes(new ArrayList<>(), this);
-        for(WBSTreeItem node : nodes) {
+        ArrayList<WBSVisualTreeItem> nodes = getBranchNodes(new ArrayList<>(), this);
+        for(WBSVisualTreeItem node : nodes) {
             double multiplier = parseResourceMultiplier(node.getResource());
             if(multiplier == -1) {
                 return -1;  // propagate error through func call
             }
             personDuration += node.getDuration() * multiplier;
+//            System.out.println(getNodeName() + " " + personDuration + " " + multiplier);
         }
 
         return personDuration;

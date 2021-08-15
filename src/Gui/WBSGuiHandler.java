@@ -1,11 +1,11 @@
 package Gui;
 
-import WBSData.WBSTreeItem;
+import WBSData.WBSVisualTreeItem;
 
 public class WBSGuiHandler {
     TreeTable table;
 
-    public WBSGuiHandler(WBSTreeItem rootNode, double fontSize) {
+    public WBSGuiHandler(WBSVisualTreeItem rootNode, double fontSize) {
 
     }
 

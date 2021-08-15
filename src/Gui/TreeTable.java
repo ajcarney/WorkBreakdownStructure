@@ -1,6 +1,6 @@
 package Gui;
 
-import WBSData.TreeItem;
+import WBSData.VisualTreeItem;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -17,10 +17,10 @@ import java.util.HashMap;
 
 public class TreeTable {
     private final VBox layout;
-    private HashMap<TreeItem, ArrayList<HBox>> treeRowData;
-    private HashMap<TreeItem, Button> treeVisibleButtons;
-    private ObservableList<TreeItem> selectedRows;
-    private final ListChangeListener<TreeItem> listener;
+    private HashMap<VisualTreeItem, ArrayList<HBox>> treeRowData;
+    private HashMap<VisualTreeItem, Button> treeVisibleButtons;
+    private ObservableList<VisualTreeItem> selectedRows;
+    private final ListChangeListener<VisualTreeItem> listener;
 
 
     public TreeTable() {
@@ -31,9 +31,9 @@ public class TreeTable {
         treeVisibleButtons = new HashMap<>();
         selectedRows = FXCollections.observableArrayList();
 
-        listener = (ListChangeListener<TreeItem>) change -> {
+        listener = (ListChangeListener<VisualTreeItem>) change -> {
             while(change.next()) {
-                for(TreeItem node : change.getAddedSubList()) {
+                for(VisualTreeItem node : change.getAddedSubList()) {
                     for (HBox cell : treeRowData.get(node)) {
                         if(treeRowData.get(node) == null) {  // used to make sure there are no concurrency issues when treeRowData is being updated
                             continue;
@@ -41,7 +41,7 @@ public class TreeTable {
                         cell.setBackground(new Background(new BackgroundFill(Color.color(0.1, 0.8, 0.9), new CornerRadii(3), new Insets(0))));
                     }
                 }
-                for(TreeItem node : change.getRemoved()) {
+                for(VisualTreeItem node : change.getRemoved()) {
                     if(treeRowData.get(node) == null) {  // used to make sure there are no concurrency issues when treeRowData is being updated
                         continue;
                     }
@@ -57,13 +57,13 @@ public class TreeTable {
     }
 
 
-    private void collapseNode(TreeItem node) {
-        ArrayList<TreeItem> descendants = node.getBranchNodes(new ArrayList<>(), node);
+    private void collapseNode(VisualTreeItem node) {
+        ArrayList<VisualTreeItem> descendants = node.getBranchNodes(new ArrayList<>(), node);
         descendants.remove(node);
         treeVisibleButtons.get(node).setText("+");
         node.setExpanded(false);
 
-        for(TreeItem descendant : descendants) {  // hide all descendants
+        for(VisualTreeItem descendant : descendants) {  // hide all descendants
             ArrayList<HBox> row = treeRowData.get(descendant);
             for(HBox cell : row) {
                 cell.setVisible(false);
@@ -72,16 +72,16 @@ public class TreeTable {
         }
     }
 
-    private void expandNode(TreeItem node) {
-        ArrayList<TreeItem> children = node.getChildren();
-        ArrayList<TreeItem> otherDescendants = node.getBranchNodes(new ArrayList<>(), node);
+    private void expandNode(VisualTreeItem node) {
+        ArrayList<VisualTreeItem> children = node.getChildren();
+        ArrayList<VisualTreeItem> otherDescendants = node.getBranchNodes(new ArrayList<>(), node);
         otherDescendants.remove(node);
         otherDescendants.removeAll(children);
         treeVisibleButtons.get(node).setText("-");
         node.setExpanded(true);
 
         // set children to be visible
-        for(TreeItem child : children) {
+        for(VisualTreeItem child : children) {
             ArrayList<HBox> row = treeRowData.get(child);  // expand the node
             for(HBox cell : row) {
                 cell.setVisible(true);
@@ -90,7 +90,7 @@ public class TreeTable {
         }
 
         // set other descendants to be visible only if parent is expanded
-        for(TreeItem otherDescendant : otherDescendants) {
+        for(VisualTreeItem otherDescendant : otherDescendants) {
             if(!otherDescendant.getParent().isExpanded()) {
                 continue;
             }
@@ -104,14 +104,14 @@ public class TreeTable {
     }
 
 
-    public void setData(TreeItem rootNode, int indentedColumnIndex) {
-        ArrayList<TreeItem> sortedNodes = rootNode.getSortedTreeNodes();
+    public void setData(VisualTreeItem rootNode, int indentedColumnIndex, ArrayList<VisualTreeItem> rowsToSelect) {
+        ArrayList<VisualTreeItem> sortedNodes = rootNode.getSortedTreeNodes();
         ArrayList<ArrayList<HBox>> data = new ArrayList<>();
         treeRowData.clear();
         treeVisibleButtons.clear();
         selectedRows.clear();
 
-        for(TreeItem node : sortedNodes) {
+        for(VisualTreeItem node : sortedNodes) {
             ArrayList<HBox> rowData = new ArrayList<>();
 
             ArrayList<Node> cells = node.renderTableRow();
@@ -164,7 +164,9 @@ public class TreeTable {
                         }
 
                         if(selectedRows.size() == 1) {
-                            ContextMenu cellContextMenu = menu.getContextMenu(selectedRows.get(0), (() -> setData(rootNode, indentedColumnIndex)));
+                            ArrayList<VisualTreeItem> rows = new ArrayList<>();
+                            rows.add(selectedRows.get(0));
+                            ContextMenu cellContextMenu = menu.getContextMenu(selectedRows.get(0), (() -> setData(rootNode, indentedColumnIndex, rows)));
                             cellContextMenu.show(cell, e.getScreenX(), e.getScreenY());
                         }
                         return;  // don't do anything else
@@ -222,6 +224,12 @@ public class TreeTable {
         grid.setGridDataHBox(data);
         grid.setFreezeLeft(3);
         grid.setFreezeHeader(1);
+
+        if(rowsToSelect != null) {
+            for (VisualTreeItem row : rowsToSelect) {
+                selectedRows.add(row);
+            }
+        }
 
         layout.getChildren().removeAll(layout.getChildren());
         layout.getChildren().add(grid.getGrid());

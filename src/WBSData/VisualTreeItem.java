@@ -5,7 +5,8 @@ import javafx.scene.Node;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public interface TreeItem<T extends TreeItem> {
+public interface VisualTreeItem<T extends VisualTreeItem> {
+    T getNewNode();
     void setParent(T node);
     void addChild(T node);
     void addChildren(Collection<T> node);
@@ -21,8 +22,15 @@ public interface TreeItem<T extends TreeItem> {
     ArrayList<T> getBranchNodes(ArrayList<T> nodes, T startNode);
     boolean isLeaf();
     boolean isRoot();
+    void shiftNodeForward();
+    void shiftNodeBackward();
+    void bringNodeToFront();
+    void bringNodeToBack();
+    T copy(T node);
+    T deepCopy(T node, T parent);
 
     ArrayList<Node> renderTableRow();
+
     void setExpanded(boolean visible);
     boolean isExpanded();
 }

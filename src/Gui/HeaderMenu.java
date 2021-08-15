@@ -3,11 +3,9 @@ package Gui;
 import IOHandler.ExportHandler;
 import IOHandler.ImportHandler;
 import WBSData.WBSHandler;
-import WBSData.WBSTreeItem;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import WBSData.WBSVisualTreeItem;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 
@@ -25,7 +23,7 @@ public class HeaderMenu {
     private static Menu editMenu;
     private static Menu viewMenu;
 
-    private static MenuBar menuBar;
+    private static HBox menuBar;
     private static TabView editor;
     private static WBSHandler wbsHandler;
 
@@ -37,7 +35,7 @@ public class HeaderMenu {
      * @param editor     the TabView instance
      */
     public HeaderMenu(WBSHandler wbsHandler, TabView editor) {
-        menuBar = new MenuBar();
+        menuBar = new HBox();
         this.editor = editor;
         this.wbsHandler = wbsHandler;
 
@@ -46,7 +44,7 @@ public class HeaderMenu {
 
         MenuItem newFileMenu = new MenuItem("New");
         newFileMenu.setOnAction(e -> {
-            WBSTreeItem wbs = new WBSTreeItem("WBS");
+            WBSVisualTreeItem wbs = new WBSVisualTreeItem("WBS");
             File file = new File("./untitled" + Integer.toString(defaultName));
             while(file.exists()) {  // make sure file does not exist
                 defaultName += 1;
@@ -66,7 +64,7 @@ public class HeaderMenu {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
             File file = fileChooser.showOpenDialog(menuBar.getScene().getWindow());
             if(file != null) {  // make sure user did not just close out of the file chooser window
-                WBSTreeItem wbs = ImportHandler.readFile(file);
+                WBSVisualTreeItem wbs = ImportHandler.readFile(file);
                 if(wbs == null) {
                     // TODO: open window saying there was an error parsing the document
                     System.out.println("there was an error reading the file " + file.toString());
@@ -169,10 +167,21 @@ public class HeaderMenu {
             editor.resetFontScaling();
         });
 
-
         viewMenu.getItems().addAll(zoomIn, zoomOut, zoomReset);
 
-        menuBar.getMenus().addAll(fileMenu, editMenu, viewMenu);
+        MenuBar menu = new MenuBar();
+        menu.getMenus().addAll(fileMenu, editMenu, viewMenu);
+
+        Button update = new Button("Update");
+        update.setOnAction(e -> {
+            System.out.println("here");
+            if(editor.getFocusedWBSUid() == null) {
+                return;
+            }
+            wbsHandler.refreshWBSGui(editor.getFocusedWBSUid());
+        });
+
+        menuBar.getChildren().addAll(menu, update);
     }
 
 
@@ -181,7 +190,7 @@ public class HeaderMenu {
      *
      * @return the MenuBar object created by the constructor
      */
-    public MenuBar getMenuBar() {
+    public HBox getMenuBar() {
         return menuBar;
     }
 

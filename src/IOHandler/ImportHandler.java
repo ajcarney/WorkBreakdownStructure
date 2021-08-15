@@ -1,6 +1,6 @@
 package IOHandler;
 
-import WBSData.WBSTreeItem;
+import WBSData.WBSVisualTreeItem;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
@@ -15,8 +15,8 @@ import java.io.File;
  * @author Aiden Carney
  */
 public class ImportHandler {
-    static private WBSTreeItem parseNodes(WBSTreeItem parentNode, Element element) {
-        WBSTreeItem n = new WBSTreeItem(element.getChild("name").getText(), Integer.parseInt(element.getChild("uid").getText()));
+    static private WBSVisualTreeItem parseNodes(WBSVisualTreeItem parentNode, Element element) {
+        WBSVisualTreeItem n = new WBSVisualTreeItem(element.getChild("name").getText(), Integer.parseInt(element.getChild("uid").getText()));
         n.setParent(parentNode);
         n.setDuration(Double.parseDouble(element.getChild("duration").getText()));
         n.setResource(element.getChild("resource").getText());
@@ -45,15 +45,15 @@ public class ImportHandler {
      * Reads an xml file and parses it into the tree structure. Returns the root node
      *
      * @param fileName the file location to read from
-     * @return         WBSTreeItem root node of the parsed in structure
+     * @return         WBSVisualTreeItem root node of the parsed in structure
      */
-    static public WBSTreeItem readFile(File fileName) {
+    static public WBSVisualTreeItem readFile(File fileName) {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
             Document document = saxBuilder.build(fileName);  // read file into memory
             Element rootElement = document.getRootElement();
 
-            WBSTreeItem rootNode = parseNodes(null, rootElement);
+            WBSVisualTreeItem rootNode = parseNodes(null, rootElement);
 
             return rootNode;
         } catch(Exception e) {

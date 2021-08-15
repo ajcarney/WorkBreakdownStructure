@@ -1,6 +1,6 @@
 package IOHandler;
 
-import WBSData.WBSTreeItem;
+import WBSData.WBSVisualTreeItem;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
- * A class with methods that handle exporting or saving a WBSTreeItem wbs object
+ * A class with methods that handle exporting or saving a WBSVisualTreeItem wbs object
  * Currently supports DSM file (.dsm), CSV file (.csv), Excel spreadsheet (.xlsx), and Thebeau
  * Matlab files (.m)
  *
@@ -38,7 +38,7 @@ public class ExportHandler {
      * @param file      the file to save the csv file to  TODO: add validation that the file is in fact .csv
      * @return          1 on success, 0 on error
      */
-    static public int exportWBSToCSV(WBSTreeItem wbs, File file) {
+    static public int exportWBSToCSV(WBSVisualTreeItem wbs, File file) {
         try {
             // TODO: implement
 
@@ -60,7 +60,7 @@ public class ExportHandler {
      * @param file      A File object of the location of the .xlsx file  TODO: add validation that it is a .xlsx file
      * @return          1 on success, 0 on error
      */
-    static public int exportWBSToXLSX(WBSTreeItem wbs, File file) {
+    static public int exportWBSToXLSX(WBSVisualTreeItem wbs, File file) {
         try {
             // TODO: Implement
 
@@ -74,7 +74,7 @@ public class ExportHandler {
 
 
 
-    static private Element parseNodes(Element parentElement, WBSTreeItem node) {
+    static private Element parseNodes(Element parentElement, WBSVisualTreeItem node) {
         Element nodeElement = new Element("node");
         nodeElement.addContent(new Element("name").setText(node.getNodeName()));
         nodeElement.addContent(new Element("uid").setText(String.valueOf(node.getUid())));
@@ -99,7 +99,7 @@ public class ExportHandler {
         }
 
         if(!node.getChildren().isEmpty()) {  // parse children nodes
-            for(WBSTreeItem child : node.getChildren()) {
+            for(WBSVisualTreeItem child : node.getChildren()) {
                 parseNodes(childElement, child);
             }
         } else {
@@ -118,7 +118,7 @@ public class ExportHandler {
      * @param file      the file to save the wbs to
      * @return          1 on success, 0 on error
      */
-    static public int saveWBSToFile(WBSTreeItem wbs, File file) {
+    static public int saveWBSToFile(WBSVisualTreeItem wbs, File file) {
         try {
             // TODO: implement
             Element rootXMLNode = parseNodes(null, wbs);
@@ -208,7 +208,7 @@ public class ExportHandler {
      * @param wbs the wbs to save
      * @param window the window associated with the file chooser
      */
-    static public void promptSaveToFile(WBSTreeItem wbs, Window window) {
+    static public void promptSaveToFile(WBSVisualTreeItem wbs, Window window) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DSM File", "*.dsm"));  // dsm is the only file type usable
         File fileName = fileChooser.showSaveDialog(window);
@@ -224,7 +224,7 @@ public class ExportHandler {
      * @param wbs the wbs to save
      * @param window the window associated with the file chooser
      */
-    static public void promptExportToCSV(WBSTreeItem wbs, Window window) {
+    static public void promptExportToCSV(WBSVisualTreeItem wbs, Window window) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV File", "*.csv"));  // dsm is the only file type usable
         File fileName = fileChooser.showSaveDialog(window);
@@ -240,7 +240,7 @@ public class ExportHandler {
      * @param wbs the wbs to save
      * @param window the window associated with the file chooser
      */
-    static public void promptExportToExcel(WBSTreeItem wbs, Window window) {
+    static public void promptExportToExcel(WBSVisualTreeItem wbs, Window window) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Microsoft Excel File", "*.xlsx"));  // dsm is the only file type usable
         File fileName = fileChooser.showSaveDialog(window);

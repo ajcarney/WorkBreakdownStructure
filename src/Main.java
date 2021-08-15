@@ -3,9 +3,8 @@ import Gui.TabView;
 import Gui.TreeTable;
 import IOHandler.ExportHandler;
 import IOHandler.ImportHandler;
-import WBSData.TreeItem;
 import WBSData.WBSHandler;
-import WBSData.WBSTreeItem;
+import WBSData.WBSVisualTreeItem;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -15,8 +14,6 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 
 
@@ -49,8 +46,8 @@ public class Main extends Application {
         // start with a tab open (used for debugging, remove or comment out for release)
         if(cliArgs.contains("--debug=true")) {
             File file = new File("/home/aiden/Documents/WorkBreakdownStructure/test2.wbs");
-            WBSTreeItem wbs = ImportHandler.readFile(file);
-            for(WBSTreeItem node : wbs.getTreeNodes()) {  // print tree for debugging
+            WBSVisualTreeItem wbs = ImportHandler.readFile(file);
+            for(WBSVisualTreeItem node : wbs.getTreeNodes()) {  // print tree for debugging
                 String text = "";
                 for(int i = 0; i < node.getLevel(); i++) {
                     text += "  ";
@@ -60,7 +57,7 @@ public class Main extends Application {
 
             TreeTable table = new TreeTable();
             wbs.updateShortNames();
-            ArrayList<WBSTreeItem> sortedNodes = wbs.getTreeNodes();
+            ArrayList<WBSVisualTreeItem> sortedNodes = wbs.getTreeNodes();
             int uid = wbsHandler.addWBS(wbs, file);
             editor.addTab(uid);
 
