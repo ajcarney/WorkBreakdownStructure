@@ -7,6 +7,9 @@ import java.util.Collection;
 
 public interface VisualTreeItem<T extends VisualTreeItem> {
     T getNewNode();
+    String getNodeName();
+    void setNodeName(String nodeName);
+
     void setParent(T node);
     void addChild(T node);
     void addChildren(Collection<T> node);

@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -90,6 +91,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         wasModified = true;
     }
 
+    @Override
     public WBSVisualTreeItem getNewNode() {
         return new WBSVisualTreeItem("New Node");
     }
@@ -269,7 +271,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
             Label durationLabel = new Label("Duration (hrs)");
 
-            Label personDurationLabel = new Label("Person Duration Hours");
+            Label personDurationLabel = new Label("Person Duration\nHours");
 
             Label resourceLabel = new Label("Resources");
 
@@ -302,8 +304,10 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             Label shortNameLabel = new Label(String.valueOf(shortName));
 
             TextField nameEntry = new TextField(nodeName);
+            nameEntry.setTooltip(new Tooltip(nodeName));
             nameEntry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNodeName(newValue);
+                nameEntry.setTooltip(new Tooltip(newValue));
                 wasModified = true;
             });
             nameEntry.setBackground(new Background(new BackgroundFill(Color.color(0.8, 0.8, 0.8), new CornerRadii(3), new Insets(0))));
@@ -312,18 +316,17 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             Node durationEntry;
             if(isLeaf()) {
                 durationEntry = new NumericTextField(duration);
+                ((NumericTextField)durationEntry).setPrefColumnCount(5);
+                ((NumericTextField)durationEntry).setTooltip(new Tooltip(String.valueOf(duration)));
                 ((NumericTextField)durationEntry).textProperty().addListener((observable, oldValue, newValue) -> {
-                    setDuration(((NumericTextField)durationEntry).getNumericValue());
+                    double newDuration = ((NumericTextField)durationEntry).getNumericValue();
+                    setDuration(newDuration);
+                    ((NumericTextField)durationEntry).setTooltip(new Tooltip(String.valueOf(newDuration)));
                     wasModified = true;
                 });
             } else {
                 durationEntry = new Label(String.valueOf(duration));
             }
-//            NumericTextField durationEntry = new NumericTextField(duration);
-//            durationEntry.textProperty().addListener((observable, oldValue, newValue) -> {
-//                setDuration(durationEntry.getNumericValue());
-//                wasModified = true;
-//            });
 
             double personDuration = getPersonDuration();
             Label personDurationLabel = new Label();
@@ -335,6 +338,8 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             }
 
             TextField resourceEntry = new TextField(resource);
+            resourceEntry.setTooltip(new Tooltip(resource));
+            resourceEntry.setPrefColumnCount(25);
             resourceEntry.textProperty().addListener((observable, oldValue, newValue) -> {
                 if(parseResourceMultiplier(newValue) == -1) {
                     resourceEntry.setBackground(new Background(new BackgroundFill(Color.color(0.9, 0.2, 0.1), new CornerRadii(3), new Insets(0))));
@@ -342,18 +347,34 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
                     resourceEntry.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1), new CornerRadii(3), new Insets(0))));
                     setResource(newValue);
                 }
+                resourceEntry.setTooltip(new Tooltip(newValue));
                 wasModified = true;
             });
 
             String startText = "";
+            ArrayList<Integer> predecessorsToRemove = new ArrayList<>();
             for (int uid : predecessors) {
-                startText += getNodeByUid(uid).getShortName() + ", ";
+                // TODO: pruning broken predecessors should probably happen in a delete function somewhere not the render function
+                boolean uidExists = false;     // check for broken predecessors
+                for(WBSVisualTreeItem node : getTreeNodes()) {
+                    if(node.getUid() == uid) {
+                        uidExists = true;
+                        break;
+                    }
+                }
+                if(uidExists) {
+                    startText += getNodeByUid(uid).getShortName() + ", ";
+                } else {  // add to list to prune it from predecessors
+                    predecessorsToRemove.add(uid);
+                }
             }
+            predecessors.removeAll(predecessorsToRemove);
             if(predecessors.size() > 0) {  // remove last two characters of string because they will just be a string and a comma
                 startText = startText.substring(0, startText.length() - 2);
             }
 
             TextField predecessorsEntry = new TextField(startText);
+            predecessorsEntry.setTooltip(new Tooltip(startText));
             predecessorsEntry.textProperty().addListener((observable, oldValue, newValue) -> {
                 ArrayList<Integer> shortNames = parsePredecessors(newValue);
                 if (shortNames == null) {
@@ -370,19 +391,24 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
                         }
                     }
                 }
+                predecessorsEntry.setTooltip(new Tooltip(predecessorsEntry.getText()));
                 wasModified = true;
             });
 
 
             TextField notes1Entry = new TextField(notes1);
+            notes1Entry.setTooltip(new Tooltip(notes1));
             notes1Entry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNotes1(newValue);
+                notes1Entry.setTooltip(new Tooltip(newValue));
                 wasModified = true;
             });
 
-            TextField notes2Entry = new TextField(notes1);
+            TextField notes2Entry = new TextField(notes2);
+            notes2Entry.setTooltip(new Tooltip(notes2));
             notes2Entry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNotes2(newValue);
+                notes2Entry.setTooltip(new Tooltip(newValue));
                 wasModified = true;
             });
 

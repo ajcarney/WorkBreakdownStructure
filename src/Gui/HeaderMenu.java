@@ -82,6 +82,7 @@ public class HeaderMenu {
             if(editor.getFocusedWBSUid() == null) {
                 return;
             }
+            wbsHandler.refreshWBSGui(editor.getFocusedWBSUid());
             if(this.wbsHandler.getWBSSaveFile(editor.getFocusedWBSUid()).getName().contains("untitled")) {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
@@ -101,6 +102,7 @@ public class HeaderMenu {
             if(editor.getFocusedWBSUid() == null) {
                 return;
             }
+            wbsHandler.refreshWBSGui(editor.getFocusedWBSUid());
             FileChooser fileChooser = new FileChooser();
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WBS File", "*.wbs"));  // wbs is the only file type usable
             File fileName = fileChooser.showSaveDialog(menuBar.getScene().getWindow());
@@ -116,6 +118,7 @@ public class HeaderMenu {
             if(editor.getFocusedWBSUid() == null) {
                 return;
             }
+            wbsHandler.refreshWBSGui(editor.getFocusedWBSUid());
             ExportHandler.promptExportToCSV(wbsHandler.getWBS(editor.getFocusedWBSUid()), menuBar.getScene().getWindow());
         });
         MenuItem exportXLSX = new MenuItem("Micro$oft Excel File (.xlsx)");
@@ -123,6 +126,7 @@ public class HeaderMenu {
             if(editor.getFocusedWBSUid() == null) {
                 return;
             }
+            wbsHandler.refreshWBSGui(editor.getFocusedWBSUid());
             ExportHandler.promptExportToExcel(wbsHandler.getWBS(editor.getFocusedWBSUid()), menuBar.getScene().getWindow());
         });
 

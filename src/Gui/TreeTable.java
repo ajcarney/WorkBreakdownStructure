@@ -34,6 +34,10 @@ public class TreeTable {
         listener = (ListChangeListener<VisualTreeItem>) change -> {
             while(change.next()) {
                 for(VisualTreeItem node : change.getAddedSubList()) {
+                    if(treeRowData.get(node) == null) {
+                        continue;
+                    }
+
                     for (HBox cell : treeRowData.get(node)) {
                         if(treeRowData.get(node) == null) {  // used to make sure there are no concurrency issues when treeRowData is being updated
                             continue;
@@ -45,6 +49,7 @@ public class TreeTable {
                     if(treeRowData.get(node) == null) {  // used to make sure there are no concurrency issues when treeRowData is being updated
                         continue;
                     }
+
                     for (HBox cell : treeRowData.get(node)) {
                         cell.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1), new CornerRadii(3), new Insets(0))));
                     }
@@ -151,7 +156,7 @@ public class TreeTable {
                     cell.getChildren().add(spacer);
                 }
                 cell.getChildren().add(cells.get(i));
-                cell.setPadding(new Insets(3));
+                cell.setPadding(new Insets(1, 5, 1, 5));
                 cell.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
                 // callback to determine selected rows

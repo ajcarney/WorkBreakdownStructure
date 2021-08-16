@@ -1,9 +1,18 @@
 package Gui;
 
 import WBSData.VisualTreeItem;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.util.Callback;
+
+import java.util.ArrayList;
 
 public class TreeContextMenu {
     private final ContextMenu contextMenu;
@@ -18,6 +27,49 @@ public class TreeContextMenu {
         addChild.setOnAction(e -> {
             node.addChild(node.getNewNode());
             updateGuiFunction.run();
+        });
+
+        // add children
+        MenuItem addChildren = new MenuItem("Add Children...");
+        addChildren.setOnAction(e -> {
+            Stage window = new Stage();
+            window.setTitle("Choose Number of Children to Add");
+            window.initModality(Modality.APPLICATION_MODAL); //Block events to other windows
+
+            VBox rootLayout = new VBox();
+            rootLayout.setPadding(new Insets(10, 10, 10, 10));
+            rootLayout.setSpacing(10);
+
+            Label title = new Label("Number of Children to Add:");
+            NumericTextField entry = new NumericTextField(1.0);
+            Pane vSpacer = new Pane();
+            vSpacer.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+            Button okButton = new Button("Ok");
+            okButton.setOnAction(ee -> {
+                double number = entry.getNumericValue().doubleValue();
+                for(int i=0; i<number; i++) {
+                    node.addChild(node.getNewNode());
+                }
+                window.close();
+                updateGuiFunction.run();
+            });
+            Pane spacer = new Pane();
+            spacer.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button cancelButton = new Button("Cancel");
+            cancelButton.setOnAction(ee -> {
+                window.close();
+            });
+            HBox closeView = new HBox();
+            closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+            rootLayout.getChildren().addAll(title, entry, vSpacer, closeView);
+
+            Scene scene = new Scene(rootLayout);
+            window.setScene(scene);
+            window.showAndWait();
         });
 
         // add sibling
@@ -80,9 +132,85 @@ public class TreeContextMenu {
             updateGuiFunction.run();
         });
 
+        // move into parent
+        MenuItem swapParent = new MenuItem("Move Into Parent...");
+        swapParent.setOnAction(e -> {
+            Stage window = new Stage();
+            window.setTitle("Choose New Parent");
+            window.initModality(Modality.APPLICATION_MODAL); //Block events to other windows
+
+            VBox rootLayout = new VBox();
+            rootLayout.setPadding(new Insets(10, 10, 10, 10));
+            rootLayout.setSpacing(10);
+
+            Label title = new Label("New Parent:");
+            ComboBox<VisualTreeItem> itemSelector = new ComboBox<>();
+            Callback<ListView<VisualTreeItem>, ListCell<VisualTreeItem>> cellFactory = new Callback<>() {  // set custom view of node
+                @Override
+                public ListCell<VisualTreeItem> call(ListView<VisualTreeItem> l) {
+                    return new ListCell<>() {
+                        @Override
+                        protected void updateItem(VisualTreeItem item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (item == null || empty) {
+                                setGraphic(null);
+                            } else {
+                                setText(item.getNodeName() + " (Level: " + item.getLevel() + ")");
+                            }
+                        }
+                    };
+                }
+            };
+            itemSelector.setButtonCell(cellFactory.call(null));
+            itemSelector.setCellFactory(cellFactory);
+
+            itemSelector.getItems().addAll(node.getTreeNodes());
+
+            Pane vSpacer = new Pane();
+            vSpacer.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+            Button okButton = new Button("Ok");
+            okButton.setOnAction(ee -> {
+                VisualTreeItem newParent = itemSelector.getValue();
+                node.setParent(newParent);
+                window.close();
+                updateGuiFunction.run();
+            });
+            Pane spacer = new Pane();
+            spacer.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button cancelButton = new Button("Cancel");
+            cancelButton.setOnAction(ee -> {
+                window.close();
+            });
+            HBox closeView = new HBox();
+            closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+            rootLayout.getChildren().addAll(title, itemSelector, vSpacer, closeView);
+
+            Scene scene = new Scene(rootLayout);
+            window.setScene(scene);
+            window.showAndWait();
+        });
+
         // delete node
         MenuItem deleteNode = new MenuItem("Delete Node");
         deleteNode.setOnAction (e -> {
+            ArrayList<VisualTreeItem> children = (ArrayList<VisualTreeItem>)node.getChildren().clone();
+            for(VisualTreeItem child : children) {
+                System.out.println(child);
+                child.setExpanded(true);
+                node.getParent().addChild(child);
+            }
+            node.getParent().deleteChild(node);  // don't check for null parent because this box will be disabled if parent is null
+            updateGuiFunction.run();
+        });
+
+
+        // deep delete node
+        MenuItem deepDeleteNode = new MenuItem("Deep Delete Node");
+        deepDeleteNode.setOnAction (e -> {
             node.getParent().deleteChild(node);  // don't check for null parent because this box will be disabled if parent is null
             updateGuiFunction.run();
         });
@@ -105,11 +233,13 @@ public class TreeContextMenu {
             bringToBottom.setDisable(node.getParent() == null);
             breakout.setDisable(node.getParent() == null || node.getParent().getParent() == null);
             deleteNode.setDisable(node.getParent() == null);
+            deepDeleteNode.setDisable(node.getParent() == null);
         });
 
         contextMenu.getItems().clear();
         contextMenu.getItems().addAll(
             addChild,
+            addChildren,
             addSibling,
             copy,
             deepCopy,
@@ -120,8 +250,10 @@ public class TreeContextMenu {
             bringToBottom,
             new SeparatorMenuItem(),
             breakout,
+            swapParent,
             new SeparatorMenuItem(),
             deleteNode,
+            deepDeleteNode,
             deleteDescendants
         );
 
