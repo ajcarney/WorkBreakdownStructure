@@ -240,7 +240,7 @@ public class TreeContextMenu {
 
 
         // delete node
-        MenuItem deleteNode = new MenuItem("Delete Node");
+        MenuItem deleteNode = new MenuItem("Pop Node");
         deleteNode.setOnAction(e -> {
             ArrayList<VisualTreeItem> children = (ArrayList<VisualTreeItem>)node.getChildren().clone();
             for(VisualTreeItem child : children) {
@@ -255,15 +255,79 @@ public class TreeContextMenu {
         // deep delete node
         MenuItem deepDeleteNode = new MenuItem("Deep Delete Node");
         deepDeleteNode.setOnAction (e -> {
-            node.getParent().deleteChild(node);  // don't check for null parent because this box will be disabled if parent is null
-            updateGuiFunction.run();
+            Stage window = new Stage();
+            window.setTitle("Warning");
+            window.initModality(Modality.APPLICATION_MODAL);  // Block events to other windows
+
+            VBox rootLayout = new VBox();
+            rootLayout.setPadding(new Insets(10, 10, 10, 10));
+            rootLayout.setSpacing(10);
+
+            Label title = new Label("You are about to delete " + node.getBranchNodes(new ArrayList(), node).size() + " nodes. Continue?");
+            Pane vSpacer = new Pane();
+            vSpacer.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+            Button okButton = new Button("Yes");
+            okButton.setOnAction(ee -> {
+                node.getParent().deleteChild(node);  // don't check for null parent because this box will be disabled if parent is null
+                window.close();
+                updateGuiFunction.run();
+            });
+            Pane spacer = new Pane();
+            spacer.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button cancelButton = new Button("No");
+            cancelButton.setOnAction(ee -> {
+                window.close();
+            });
+            HBox closeView = new HBox();
+            closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+            rootLayout.getChildren().addAll(title, vSpacer, closeView);
+
+            Scene scene = new Scene(rootLayout);
+            window.setScene(scene);
+            window.showAndWait();
         });
 
         // delete descendants
         MenuItem deleteDescendants = new MenuItem("Delete Descendants");
         deleteDescendants.setOnAction (e -> {
-            node.deleteChildren(node.getChildren());
-            updateGuiFunction.run();
+            Stage window = new Stage();
+            window.setTitle("Warning");
+            window.initModality(Modality.APPLICATION_MODAL);  // Block events to other windows
+
+            VBox rootLayout = new VBox();
+            rootLayout.setPadding(new Insets(10, 10, 10, 10));
+            rootLayout.setSpacing(10);
+
+            Label title = new Label("You are about to delete " + (node.getBranchNodes(new ArrayList(), node).size() - 1) + " nodes. Continue?");  // subtract one to not include start node
+            Pane vSpacer = new Pane();
+            vSpacer.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+            Button okButton = new Button("Yes");
+            okButton.setOnAction(ee -> {
+                node.deleteChildren(node.getChildren());
+                window.close();
+                updateGuiFunction.run();
+            });
+            Pane spacer = new Pane();
+            spacer.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button cancelButton = new Button("No");
+            cancelButton.setOnAction(ee -> {
+                window.close();
+            });
+            HBox closeView = new HBox();
+            closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+            rootLayout.getChildren().addAll(title, vSpacer, closeView);
+
+            Scene scene = new Scene(rootLayout);
+            window.setScene(scene);
+            window.showAndWait();
         });
 
 

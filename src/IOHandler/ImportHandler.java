@@ -31,8 +31,10 @@ public class ImportHandler {
         if(!element.getChild("children").getChildren().isEmpty()) {  // parse children nodes
             for(Element child : element.getChild("children").getChildren()) {
                 parseNodes(n, child);
+                n.setWasModified(false);
             }
         } else {
+            n.setWasModified(false);
             return null;  // no return value needed
         }
 

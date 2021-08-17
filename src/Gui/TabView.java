@@ -86,8 +86,6 @@ public class TabView {
         });
         nameHandlerThread.setDaemon(true);
         nameHandlerThread.start();
-
-
     }
 
 

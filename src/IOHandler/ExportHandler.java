@@ -135,7 +135,9 @@ public class ExportHandler {
             xmlOutput.setFormat(Format.getPrettyFormat());  // TODO: change this to getCompactFormat() for release
             xmlOutput.output(doc, new FileOutputStream(file));
 
-            wbs.clearWasModifiedFlag();
+            for(WBSVisualTreeItem node : wbs.getTreeNodes()) {
+                node.setWasModified(false);
+            }
 
             return 1;  // file was successfully saved
         } catch(Exception e) {  // TODO: add better error handling and bring up an alert box

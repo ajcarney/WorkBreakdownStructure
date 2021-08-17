@@ -55,7 +55,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         siblingGroupColor = Color.web("#FFFFFF");
 
         isVisible = true;
-        wasModified = true;
+        setWasModified(true);
     }
 
     public WBSVisualTreeItem(String nodeName, Integer uid, String hexColor) {
@@ -92,7 +92,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         siblingGroupColor = Color.web("#FFFFFF");  // does not copy group color
 
         isVisible = copy.isExpanded();
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
     public void addChild(WBSVisualTreeItem node) {
         children.add(node);
         node.setParent(this);
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -166,14 +166,14 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         for(WBSVisualTreeItem node : nodes) {
             node.setParent(this);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
     public void deleteChild(WBSVisualTreeItem node) {
         children.remove(node);
         node.setParent(null);
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -182,7 +182,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         for(WBSVisualTreeItem node : nodes) {
             node.setParent(null);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             node.getChildren().add(this);  // add child to new parent if it is not already there and not null
         }
         parent = node;  // update parent node
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -312,7 +312,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             nameEntry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNodeName(newValue);
                 nameEntry.setTooltip(new Tooltip(newValue));
-                wasModified = true;
+                setWasModified(true);
             });
             nameEntry.setBackground(new Background(new BackgroundFill(Color.color(0.8, 0.8, 0.8), new CornerRadii(3), new Insets(0))));
 
@@ -326,7 +326,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
                     double newDuration = ((NumericTextField)durationEntry).getNumericValue();
                     setDuration(newDuration);
                     ((NumericTextField)durationEntry).setTooltip(new Tooltip(String.valueOf(newDuration)));
-                    wasModified = true;
+                    setWasModified(true);
                 });
             } else {
                 durationEntry = new Label(String.valueOf(duration));
@@ -352,7 +352,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
                     setResource(newValue);
                 }
                 resourceEntry.setTooltip(new Tooltip(newValue));
-                wasModified = true;
+                setWasModified(true);
             });
 
             String startText = "";
@@ -396,7 +396,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
                     }
                 }
                 predecessorsEntry.setTooltip(new Tooltip(predecessorsEntry.getText()));
-                wasModified = true;
+                setWasModified(true);
             });
 
 
@@ -405,7 +405,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             notes1Entry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNotes1(newValue);
                 notes1Entry.setTooltip(new Tooltip(newValue));
-                wasModified = true;
+                setWasModified(true);
             });
 
             TextField notes2Entry = new TextField(notes2);
@@ -413,7 +413,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             notes2Entry.textProperty().addListener((observable, oldValue, newValue) -> {
                 setNotes2(newValue);
                 notes2Entry.setTooltip(new Tooltip(newValue));
-                wasModified = true;
+                setWasModified(true);
             });
 
             row.add(shortNameLabel);
@@ -497,7 +497,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         if(nodeIndex < siblings.size() - 1) {
             Collections.swap(siblings, nodeIndex, nodeIndex + 1);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -507,7 +507,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         if(nodeIndex > 0) {
             Collections.swap(siblings, nodeIndex, nodeIndex - 1);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -518,7 +518,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             Collections.swap(siblings, nodeIndex, nodeIndex + 1);
             nodeIndex = siblings.indexOf(this);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -529,7 +529,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             Collections.swap(siblings, nodeIndex, nodeIndex - 1);
             nodeIndex = siblings.indexOf(this);
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     @Override
@@ -560,7 +560,6 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     public void setShortName(int shortName) {
         this.shortName = shortName;
-        wasModified = true;
     }
 
     public int getUid() {
@@ -573,7 +572,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     public void setNodeName(String nodeName) {
         this.nodeName = nodeName;
-        wasModified = true;
+        setWasModified(true);
     }
 
     public double getDuration() {
@@ -590,7 +589,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             }
             parent.setDuration(newParentDuration);  // recursively propagate to root updating duration
         }
-        wasModified = true;
+        setWasModified(true);
     }
 
     public double getPersonDuration() {
@@ -614,7 +613,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     public void setResource(String resource) {
         this.resource = resource;
-        wasModified = true;
+        setWasModified(true);
     }
 
     public ArrayList<Integer> getPredecessors() {
@@ -631,7 +630,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     public void setNotes1(String notes1) {
         this.notes1 = notes1;
-        wasModified = true;
+        setWasModified(true);
     }
 
     public String getNotes2() {
@@ -640,9 +639,13 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     public void setNotes2(String notes2) {
         this.notes2 = notes2;
-        wasModified = true;
+        setWasModified(true);
     }
 
+    public void setWasModified(boolean newValue) {
+        wasModified = newValue;
+    }
+    
     public boolean getWasModified() {
         return wasModified;
     }

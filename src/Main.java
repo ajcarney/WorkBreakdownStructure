@@ -7,14 +7,20 @@ import WBSData.WBSHandler;
 import WBSData.WBSVisualTreeItem;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -55,28 +61,33 @@ public class Main extends Application {
                 System.out.println(text + node.getNodeName());
             }
 
-            TreeTable table = new TreeTable();
             wbs.updateShortNames();
-            ArrayList<WBSVisualTreeItem> sortedNodes = wbs.getTreeNodes();
             int uid = wbsHandler.addWBS(wbs, file);
             editor.addTab(uid);
-
-            ExportHandler.saveWBSToFile(wbs, new File("/home/aiden/Documents/WorkBreakdownStructure/test2.wbs"));
-//            Collections.sort(sortedNodes, Comparator.comparing(n -> n.getShortName()));
-//
-//            table.setData(wbs, 1);
-//            root.setCenter(table.getLayout());
         }
 
 
-
-
         Scene scene = new Scene(root, 1400, 800);
-        primaryStage.setTitle("DSM Editor");
+        primaryStage.setTitle("WBS Editor");
         primaryStage.setScene(scene);
         primaryStage.show();
         Platform.setImplicitExit(true);
 
+        // on close, iterate through each tab and run the close request to save it or not
+        scene.getWindow().setOnCloseRequest(new EventHandler<WindowEvent>() {
+            public void handle(WindowEvent ev) {
+                for (Map.Entry<Tab, Integer> entry : ((HashMap<Tab, Integer>) editor.getTabs().clone()).entrySet()) {  // iterate over clone
+                    EventHandler<Event> handler = entry.getKey().getOnCloseRequest();
+                    handler.handle(null);
+
+                    if (editor.getTabs().get(entry.getKey()) != null) {
+                        ev.consume();
+                        return;
+                    }
+                }
+                System.exit(0);  // terminate the program once the window is closed
+            }
+        });
     }
 
 

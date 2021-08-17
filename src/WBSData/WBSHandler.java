@@ -131,8 +131,12 @@ public class WBSHandler {
      * @return true if wbs is saved, false otherwise
      */
     public boolean isWBSSaved(int wbsUid) {
-        // TODO:
-        return !structures.get(wbsUid).getWasModified();
+        for(WBSVisualTreeItem node : structures.get(wbsUid).getTreeNodes()) {
+            if(node.getWasModified() == true)  {
+                return false;
+            }
+        }
+        return true;
     }
 
 
