@@ -1,6 +1,7 @@
 package WBSData;
 
 import javafx.scene.Node;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +34,8 @@ public interface VisualTreeItem<T extends VisualTreeItem> {
     T deepCopy(T node, T parent);
 
     ArrayList<Node> renderTableRow();
-
     void setExpanded(boolean visible);
     boolean isExpanded();
+    void setSiblingGroupColor(Color color);
+    Color getSiblingGroupColor();
 }

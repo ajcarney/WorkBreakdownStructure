@@ -34,6 +34,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
     private String notes2;
 
     private boolean isVisible;
+    private Color siblingGroupColor;
     private boolean wasModified;
 
     public WBSVisualTreeItem(String nodeName) {
@@ -51,12 +52,13 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();
         notes1 = "";
         notes2 = "";
+        siblingGroupColor = Color.web("#FFFFFF");
 
         isVisible = true;
         wasModified = true;
     }
 
-    public WBSVisualTreeItem(String nodeName, Integer uid) {
+    public WBSVisualTreeItem(String nodeName, Integer uid, String hexColor) {
         children = new ArrayList<>();
         this.uid = uid;
         this.nodeName = nodeName;
@@ -66,6 +68,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();
         notes1 = "";
         notes2 = "";
+        siblingGroupColor = Color.web(hexColor);
 
         isVisible = true;
         wasModified = false;
@@ -86,6 +89,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();  // does not copy predecessors
         notes1 = copy.getNotes1();
         notes2 = copy.getNotes2();
+        siblingGroupColor = Color.web("#FFFFFF");  // does not copy group color
 
         isVisible = copy.isExpanded();
         wasModified = true;
@@ -433,6 +437,23 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
     @Override
     public boolean isExpanded() {
         return isVisible;
+    }
+
+    @Override
+    public void setSiblingGroupColor(Color color) {
+        if(getParent() == null) {
+            return;
+        }
+
+        ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
+        for(WBSVisualTreeItem sibling : siblings) {
+            sibling.siblingGroupColor = color;
+        }
+    }
+
+    @Override
+    public Color getSiblingGroupColor() {
+        return siblingGroupColor;
     }
 
     public void updateShortNames() {

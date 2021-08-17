@@ -16,7 +16,7 @@ import java.io.File;
  */
 public class ImportHandler {
     static private WBSVisualTreeItem parseNodes(WBSVisualTreeItem parentNode, Element element) {
-        WBSVisualTreeItem n = new WBSVisualTreeItem(element.getChild("name").getText(), Integer.parseInt(element.getChild("uid").getText()));
+        WBSVisualTreeItem n = new WBSVisualTreeItem(element.getChild("name").getText(), Integer.parseInt(element.getChild("uid").getText()), element.getChild("color").getText());
         n.setParent(parentNode);
         n.setDuration(Double.parseDouble(element.getChild("duration").getText()));
         n.setResource(element.getChild("resource").getText());
@@ -35,8 +35,6 @@ public class ImportHandler {
         } else {
             return null;  // no return value needed
         }
-
-        // TODO: add predecessors
 
         return n;
     }

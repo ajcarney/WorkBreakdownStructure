@@ -149,7 +149,7 @@ public class WBSHandler {
     
     
     public void refreshWBSGui(int wbsUid) {
-        wbsGuiObjects.get(wbsUid).setData(structures.get(wbsUid), TABLE_INDENTED_COLUMN, null);
+        wbsGuiObjects.get(wbsUid).setData(structures.get(wbsUid), TABLE_INDENTED_COLUMN);
     }
 
 }

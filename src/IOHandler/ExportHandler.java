@@ -92,6 +92,13 @@ public class ExportHandler {
         }
         nodeElement.addContent(predecessorsElement);
 
+        String color = String.format("#%02X%02X%02X",
+            (int)( node.getSiblingGroupColor().getRed() * 255 ),
+            (int)( node.getSiblingGroupColor().getGreen() * 255 ),
+            (int)( node.getSiblingGroupColor().getBlue() * 255 )
+        );
+        nodeElement.addContent(new Element("color").setText(color));
+
         if(parentElement != null) {
             parentElement.addContent(nodeElement);
         } else {

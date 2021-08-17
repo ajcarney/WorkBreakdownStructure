@@ -45,7 +45,7 @@ public class Main extends Application {
 
         // start with a tab open (used for debugging, remove or comment out for release)
         if(cliArgs.contains("--debug=true")) {
-            File file = new File("/home/aiden/Documents/WorkBreakdownStructure/test2.wbs");
+            File file = new File("/home/aiden/Documents/WorkBreakdownStructure/systems_engineer_wbs.wbs");
             WBSVisualTreeItem wbs = ImportHandler.readFile(file);
             for(WBSVisualTreeItem node : wbs.getTreeNodes()) {  // print tree for debugging
                 String text = "";

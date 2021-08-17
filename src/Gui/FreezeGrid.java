@@ -499,6 +499,33 @@ public class FreezeGrid {
 
 
     /**
+     * Returns the position of the center scroll pane
+     *
+     * @return Pair of h position, v position both in the range [0, 1.0]
+     */
+    public Pair<Double, Double> getPosition() {
+        if(grid.getCenter().getClass() == ScrollPane.class) {
+            return new Pair<>(((ScrollPane) grid.getCenter()).getHvalue(), ((ScrollPane) grid.getCenter()).getVvalue());
+        }
+        return null;
+    }
+
+
+    /**
+     * Sets the position of the center scroll pane if it exists
+     *
+     * @param hValue the new h position [0, 1.0]
+     * @param vValue the new v position [0, 1.0]
+     */
+    public void setPosition(double hValue, double vValue) {
+        if(grid.getCenter().getClass() == ScrollPane.class) {
+            ((ScrollPane) grid.getCenter()).setHvalue(hValue);
+            ((ScrollPane) grid.getCenter()).setVvalue(vValue);
+        }
+    }
+
+
+    /**
      * A function to help debug the grid
      */
     public static void debug() {

@@ -8,19 +8,21 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TreeTable {
     private final VBox layout;
+    private FreezeGrid grid;
     private HashMap<VisualTreeItem, ArrayList<HBox>> treeRowData;
     private HashMap<VisualTreeItem, Button> treeVisibleButtons;
-    private ObservableList<VisualTreeItem> selectedRows;
-    private final ListChangeListener<VisualTreeItem> listener;
+    private final ObservableList<VisualTreeItem> selectedRows;
 
 
     public TreeTable() {
@@ -31,7 +33,7 @@ public class TreeTable {
         treeVisibleButtons = new HashMap<>();
         selectedRows = FXCollections.observableArrayList();
 
-        listener = (ListChangeListener<VisualTreeItem>) change -> {
+        ListChangeListener<VisualTreeItem> listener = change -> {
             while(change.next()) {
                 for(VisualTreeItem node : change.getAddedSubList()) {
                     if(treeRowData.get(node) == null) {
@@ -51,12 +53,11 @@ public class TreeTable {
                     }
 
                     for (HBox cell : treeRowData.get(node)) {
-                        cell.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1), new CornerRadii(3), new Insets(0))));
+                        cell.setBackground(new Background(new BackgroundFill(node.getSiblingGroupColor(), new CornerRadii(3), new Insets(0))));
                     }
                 }
             }
         };
-
         selectedRows.addListener(listener);
 
     }
@@ -109,7 +110,7 @@ public class TreeTable {
     }
 
 
-    public void setData(VisualTreeItem rootNode, int indentedColumnIndex, ArrayList<VisualTreeItem> rowsToSelect) {
+    public void setData(VisualTreeItem rootNode, int indentedColumnIndex) {
         ArrayList<VisualTreeItem> sortedNodes = rootNode.getSortedTreeNodes();
         ArrayList<ArrayList<HBox>> data = new ArrayList<>();
         treeRowData.clear();
@@ -159,7 +160,7 @@ public class TreeTable {
                 cell.setPadding(new Insets(1, 5, 1, 5));
                 cell.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
-                // callback to determine selected rows
+                // callback to handle mouse clicks (for context menu and determining selected rows)
                 TreeContextMenu menu = new TreeContextMenu();
                 cell.setOnMouseClicked(e -> {
                     // handle right click first
@@ -168,10 +169,15 @@ public class TreeTable {
                             selectedRows.add(node);
                         }
 
-                        if(selectedRows.size() == 1) {
-                            ArrayList<VisualTreeItem> rows = new ArrayList<>();
-                            rows.add(selectedRows.get(0));
-                            ContextMenu cellContextMenu = menu.getContextMenu(selectedRows.get(0), (() -> setData(rootNode, indentedColumnIndex, rows)));
+                        if(selectedRows.size() == 1) {  // callback to open context menu
+                            VisualTreeItem selected = selectedRows.get(0);
+                            Pair<Double, Double> scrollPosition = getScrollPosition();
+
+                            ContextMenu cellContextMenu = menu.getContextMenu(selectedRows.get(0), (() -> {
+                                setData(rootNode, indentedColumnIndex);
+                                setScrollPosition(scrollPosition.getKey(), scrollPosition.getValue());
+                                addSelectedRow(selected);
+                            }));
                             cellContextMenu.show(cell, e.getScreenX(), e.getScreenY());
                         }
                         return;  // don't do anything else
@@ -209,6 +215,8 @@ public class TreeTable {
                     }
                 });
 
+
+
                 // see here for inspiration on how to implement selecting https://stackoverflow.com/questions/26860308/java-fx-multiple-selection-with-mouse-like-in-excel
                 rowData.add(cell);
             }
@@ -217,6 +225,7 @@ public class TreeTable {
                 for(HBox h : rowData) {
                     h.setManaged(node.getParent().isExpanded());
                     h.setVisible(node.getParent().isExpanded());
+                    h.setBackground(new Background(new BackgroundFill(node.getSiblingGroupColor(), new CornerRadii(3), new Insets(0))));
                 }
             }
 
@@ -225,16 +234,30 @@ public class TreeTable {
             treeVisibleButtons.put(node, setVisible);
         }
 
-        FreezeGrid grid = new FreezeGrid();
+        grid = new FreezeGrid();
         grid.setGridDataHBox(data);
         grid.setFreezeLeft(3);
         grid.setFreezeHeader(1);
 
-        if(rowsToSelect != null) {
-            for (VisualTreeItem row : rowsToSelect) {
-                selectedRows.add(row);
+        // set up keybindings
+        layout.setOnKeyPressed(e -> {
+            if(selectedRows.size() == 1) {  // keybindings for if single cell is selected
+                VisualTreeItem selected = selectedRows.get(0);
+                Pair<Double, Double> scrollPosition = getScrollPosition();
+
+                if (e.isControlDown() && e.getCode() == KeyCode.UP) {              // ctrl + up    shift node up
+                    selected.shiftNodeBackward();
+                } else if (e.isControlDown() && e.getCode() == KeyCode.DOWN) {     // ctrl + down  shift node down
+                    selected.shiftNodeForward();
+                }
+
+                setData(rootNode, indentedColumnIndex);
+                setScrollPosition(scrollPosition.getKey(), scrollPosition.getValue());
+                addSelectedRow(selected);
             }
-        }
+
+            layout.requestFocus();  // request focus after to use keybindings after each other with out needing another click
+        });
 
         layout.getChildren().removeAll(layout.getChildren());
         layout.getChildren().add(grid.getGrid());
@@ -244,6 +267,23 @@ public class TreeTable {
         return layout;
     }
 
+
+    public Pair<Double, Double> getScrollPosition() {
+        if(grid != null) {
+            return grid.getPosition();
+        }
+        return null;
+    }
+
+    public void setScrollPosition(double hPosition, double vPosition) {
+        if(grid != null) {
+            grid.setPosition(hPosition, vPosition);
+        }
+    }
+
+    public void addSelectedRow(VisualTreeItem node) {
+        selectedRows.add(node);
+    }
 
 
 }
