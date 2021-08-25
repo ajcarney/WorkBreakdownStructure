@@ -34,7 +34,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
     private String notes2;
 
     private boolean isVisible;
-    private Color siblingGroupColor;
+    private Color nodeColor;
     private boolean wasModified;
 
     public WBSVisualTreeItem(String nodeName) {
@@ -52,7 +52,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();
         notes1 = "";
         notes2 = "";
-        siblingGroupColor = Color.web("#FFFFFF");
+        nodeColor = Color.web("#FFFFFF");
 
         isVisible = true;
         setWasModified(true);
@@ -68,7 +68,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();
         notes1 = "";
         notes2 = "";
-        siblingGroupColor = Color.web(hexColor);
+        nodeColor = Color.web(hexColor);
 
         isVisible = true;
         wasModified = false;
@@ -89,7 +89,7 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
         predecessors = new ArrayList<>();  // does not copy predecessors
         notes1 = copy.getNotes1();
         notes2 = copy.getNotes2();
-        siblingGroupColor = Color.web("#FFFFFF");  // does not copy group color
+        nodeColor = Color.web("#FFFFFF");  // does not copy group color
 
         isVisible = copy.isExpanded();
         setWasModified(true);
@@ -242,13 +242,15 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
     @Override
     public ArrayList<WBSVisualTreeItem> getBranchNodes(ArrayList<WBSVisualTreeItem> nodes, WBSVisualTreeItem node) {
-        nodes.add(node);
-        if(!node.getChildren().isEmpty()) {  // parse children nodes
-            for(WBSVisualTreeItem child : node.getChildren()) {
-                getBranchNodes(nodes, child);
+        synchronized(nodes) {
+            nodes.add(node);
+            if (!node.getChildren().isEmpty()) {  // parse children nodes
+                for (WBSVisualTreeItem child : node.getChildren()) {
+                    getBranchNodes(nodes, child);
+                }
+            } else if (nodes.size() > 1) {  // ensure at least one recursive call before returning null
+                return null;  // no return value needed
             }
-        } else if(nodes.size() > 1) {  // ensure at least one recursive call before returning null
-            return null;  // no return value needed
         }
 
         return nodes;
@@ -438,8 +440,12 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
     public boolean isExpanded() {
         return isVisible;
     }
-
+    
     @Override
+    public void setNodeColor(Color color) {
+        nodeColor = color;
+    }
+    
     public void setSiblingGroupColor(Color color) {
         if(getParent() == null) {
             return;
@@ -447,13 +453,13 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
 
         ArrayList<WBSVisualTreeItem> siblings = getParent().getChildren();
         for(WBSVisualTreeItem sibling : siblings) {
-            sibling.siblingGroupColor = color;
+            sibling.nodeColor = color;
         }
     }
 
     @Override
-    public Color getSiblingGroupColor() {
-        return siblingGroupColor;
+    public Color getNodeColor() {
+        return nodeColor;
     }
 
     public void updateShortNames() {
@@ -488,6 +494,34 @@ public class WBSVisualTreeItem implements VisualTreeItem<WBSVisualTreeItem> {
             }
         }
         return null;
+    }
+
+    @Override
+    public void shiftNodeOut() {
+        if(getParent() == null || getParent().getParent() == null) {  // can't shift root or child of root out
+            return;
+        }
+        WBSVisualTreeItem parent = getParent();
+        setParent(getParent().getParent());
+        int parentIndex = parent.getParent().getChildren().indexOf(parent);
+        while(getParent().getChildren().indexOf(this) != parentIndex + 1) {
+            if(getParent().getChildren().indexOf(this) > parentIndex + 1) {
+                shiftNodeBackward();
+            } else {
+                shiftNodeForward();
+            }
+        }
+    }
+
+    @Override
+    public void shiftNodeIn() {
+        // node cannot be root nor be the last item in the list of children
+        if(getParent() == null || getParent().getChildren().indexOf(this) == getParent().getChildren().size() - 1) {
+            return;
+        }
+        WBSVisualTreeItem newParent = getParent().getChildren().get(getParent().getChildren().indexOf(this) + 1);
+        setParent(newParent);
+        bringNodeToBack();
     }
 
     @Override

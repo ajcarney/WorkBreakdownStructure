@@ -53,7 +53,7 @@ public class TreeTable {
                     }
 
                     for (HBox cell : treeRowData.get(node)) {
-                        cell.setBackground(new Background(new BackgroundFill(node.getSiblingGroupColor(), new CornerRadii(3), new Insets(0))));
+                        cell.setBackground(new Background(new BackgroundFill(node.getNodeColor(), new CornerRadii(3), new Insets(0))));
                     }
                 }
             }
@@ -225,7 +225,7 @@ public class TreeTable {
                 for(HBox h : rowData) {
                     h.setManaged(node.getParent().isExpanded());
                     h.setVisible(node.getParent().isExpanded());
-                    h.setBackground(new Background(new BackgroundFill(node.getSiblingGroupColor(), new CornerRadii(3), new Insets(0))));
+                    h.setBackground(new Background(new BackgroundFill(node.getNodeColor(), new CornerRadii(3), new Insets(0))));
                 }
             }
 
@@ -245,22 +245,37 @@ public class TreeTable {
                 VisualTreeItem selected = selectedRows.get(0);
                 Pair<Double, Double> scrollPosition = getScrollPosition();
 
-                if (e.isControlDown() && e.getCode() == KeyCode.UP) {              // ctrl + up    shift node up
+                if (e.isControlDown() && e.getCode() == KeyCode.UP) {              // ctrl + up     shift node up
                     selected.shiftNodeBackward();
-                } else if (e.isControlDown() && e.getCode() == KeyCode.DOWN) {     // ctrl + down  shift node down
+                    setData(rootNode, indentedColumnIndex);
+                    addSelectedRow(selected);
+                } else if (e.isControlDown() && e.getCode() == KeyCode.DOWN) {     // ctrl + down   shift node down
                     selected.shiftNodeForward();
+                    setData(rootNode, indentedColumnIndex);
+                    addSelectedRow(selected);
+                } else if (e.isControlDown() && e.getCode() == KeyCode.LEFT) {     // ctrl + left   shift node out
+                    selected.shiftNodeOut();
+                    setData(rootNode, indentedColumnIndex);
+                    addSelectedRow(selected);
+                } else if (e.isControlDown() && e.getCode() == KeyCode.RIGHT) {    // ctrl + right  shift node in
+                    selected.shiftNodeIn();
+                    setData(rootNode, indentedColumnIndex);
+                    addSelectedRow(selected);
+                } else if (e.getCode().equals(KeyCode.DELETE)) {                   // del           deep delete node
+                    if (selected.getParent() != null) {
+                        selected.getParent().deleteChild(selected);
+                        setData(rootNode, indentedColumnIndex);
+                    }
                 }
 
-                setData(rootNode, indentedColumnIndex);
                 setScrollPosition(scrollPosition.getKey(), scrollPosition.getValue());
-                addSelectedRow(selected);
+//                layout.requestFocus();  // request focus after to use keybindings after each other with out needing another click
             }
-
-            layout.requestFocus();  // request focus after to use keybindings after each other with out needing another click
         });
 
         layout.getChildren().removeAll(layout.getChildren());
         layout.getChildren().add(grid.getGrid());
+        layout.requestFocus();  // request focus after to use keybindings after each other with out needing another click
     }
 
     public VBox getLayout() {
@@ -283,6 +298,10 @@ public class TreeTable {
 
     public void addSelectedRow(VisualTreeItem node) {
         selectedRows.add(node);
+    }
+
+    public void removeSelectedRow(VisualTreeItem node) {
+        selectedRows.remove(node);
     }
 
 

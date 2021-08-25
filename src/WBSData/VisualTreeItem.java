@@ -26,6 +26,8 @@ public interface VisualTreeItem<T extends VisualTreeItem> {
     ArrayList<T> getBranchNodes(ArrayList<T> nodes, T startNode);
     boolean isLeaf();
     boolean isRoot();
+    void shiftNodeOut();
+    void shiftNodeIn();
     void shiftNodeForward();
     void shiftNodeBackward();
     void bringNodeToFront();
@@ -36,6 +38,6 @@ public interface VisualTreeItem<T extends VisualTreeItem> {
     ArrayList<Node> renderTableRow();
     void setExpanded(boolean visible);
     boolean isExpanded();
-    void setSiblingGroupColor(Color color);
-    Color getSiblingGroupColor();
+    void setNodeColor(Color color);
+    Color getNodeColor();
 }

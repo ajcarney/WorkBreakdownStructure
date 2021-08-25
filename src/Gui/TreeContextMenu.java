@@ -1,19 +1,21 @@
 package Gui;
 
 import WBSData.VisualTreeItem;
+import WBSData.WBSVisualTreeItem;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TreeContextMenu {
     private final ContextMenu contextMenu;
@@ -21,6 +23,118 @@ public class TreeContextMenu {
     public TreeContextMenu() {
         contextMenu = new ContextMenu();
     }
+
+
+    private Color promptColor(Color defaultColor) {
+        AtomicReference<Boolean> makeChanges = new AtomicReference<>(false);
+        Stage window = new Stage();
+        window.setTitle("Set Sibling Group Color");
+        window.initModality(Modality.APPLICATION_MODAL);  // Block events to other windows
+
+        VBox rootLayout = new VBox();
+        rootLayout.setPadding(new Insets(10, 10, 10, 10));
+        rootLayout.setSpacing(10);
+
+        Label title = new Label("Sibling Group Color:");
+        ColorPicker colorPicker = new ColorPicker(defaultColor);
+        Pane vSpacer = new Pane();
+        vSpacer.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+        Button okButton = new Button("Ok");
+        okButton.setOnAction(e -> {
+            makeChanges.set(true);
+            window.close();
+        });
+
+        Pane spacer = new Pane();
+        spacer.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setOnAction(e -> {
+            window.close();
+        });
+
+        HBox closeView = new HBox();
+        closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+        rootLayout.getChildren().addAll(title, colorPicker, vSpacer, closeView);
+
+        Scene scene = new Scene(rootLayout);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(makeChanges.get()) {
+            return colorPicker.getValue();
+        }
+        return null;
+    }
+
+
+    private VisualTreeItem promptParent(VisualTreeItem node) {
+        AtomicReference<Boolean> makeChanges = new AtomicReference<>(false);
+        Stage window = new Stage();
+        window.setTitle("Choose New Parent");
+        window.initModality(Modality.APPLICATION_MODAL); //Block events to other windows
+
+        VBox rootLayout = new VBox();
+        rootLayout.setPadding(new Insets(10, 10, 10, 10));
+        rootLayout.setSpacing(10);
+
+        Label title = new Label("New Parent:");
+        ComboBox<VisualTreeItem> itemSelector = new ComboBox<>();
+        Callback<ListView<VisualTreeItem>, ListCell<VisualTreeItem>> cellFactory = new Callback<>() {  // set custom view of node
+            @Override
+            public ListCell<VisualTreeItem> call(ListView<VisualTreeItem> l) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(VisualTreeItem item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item == null || empty) {
+                            setGraphic(null);
+                        } else {
+                            setText(item.getNodeName() + " (Level: " + item.getLevel() + ")");
+                        }
+                    }
+                };
+            }
+        };
+        itemSelector.setButtonCell(cellFactory.call(null));
+        itemSelector.setCellFactory(cellFactory);
+
+        itemSelector.getItems().addAll(node.getTreeNodes());
+
+        Pane vSpacer = new Pane();
+        vSpacer.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(vSpacer, Priority.ALWAYS);
+
+        Button okButton = new Button("Ok");
+        okButton.setOnAction(ee -> {
+            makeChanges.set(true);
+            window.close();
+        });
+        Pane spacer = new Pane();
+        spacer.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setOnAction(ee -> {
+            window.close();
+        });
+        HBox closeView = new HBox();
+        closeView.getChildren().addAll(cancelButton, spacer, okButton);
+
+        rootLayout.getChildren().addAll(title, itemSelector, vSpacer, closeView);
+
+        Scene scene = new Scene(rootLayout);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(makeChanges.get()) {
+            return itemSelector.getValue();
+        }
+        return null;
+    }
+
 
     ContextMenu getContextMenu(VisualTreeItem node, Runnable updateGuiFunction) {
         // add child
@@ -94,47 +208,82 @@ public class TreeContextMenu {
             updateGuiFunction.run();
         });
 
-
-        // set sibling group color
-        MenuItem setColor = new MenuItem("Set Sibling Group Color");
-        setColor.setOnAction(e -> {
-            Stage window = new Stage();
-            window.setTitle("Set Sibling Group Color");
-            window.initModality(Modality.APPLICATION_MODAL);  // Block events to other windows
-
-            VBox rootLayout = new VBox();
-            rootLayout.setPadding(new Insets(10, 10, 10, 10));
-            rootLayout.setSpacing(10);
-
-            Label title = new Label("Sibling Group Color:");
-            ColorPicker colorPicker = new ColorPicker(node.getSiblingGroupColor());
-            Pane vSpacer = new Pane();
-            vSpacer.setMaxHeight(Double.MAX_VALUE);
-            VBox.setVgrow(vSpacer, Priority.ALWAYS);
-
-            Button okButton = new Button("Ok");
-            okButton.setOnAction(ee -> {
-                node.setSiblingGroupColor(colorPicker.getValue());
-                window.close();
+        // duplicate into parent
+        MenuItem duplicateIntoParent = new MenuItem("Deep Duplicate into Parent");
+        duplicateIntoParent.setOnAction(e -> {
+            VisualTreeItem newParent = promptParent(node);
+            if(newParent != null) {
+                newParent.addChild(node.deepCopy(node, null));
                 updateGuiFunction.run();
-            });
-            Pane spacer = new Pane();
-            spacer.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            Button cancelButton = new Button("Cancel");
-            cancelButton.setOnAction(ee -> {
-                window.close();
-            });
-            HBox closeView = new HBox();
-            closeView.getChildren().addAll(cancelButton, spacer, okButton);
-
-            rootLayout.getChildren().addAll(title, colorPicker, vSpacer, closeView);
-
-            Scene scene = new Scene(rootLayout);
-            window.setScene(scene);
-            window.showAndWait();
+            }
         });
 
+
+        // set node color
+        MenuItem setNodeColor = new MenuItem("Set Node Color...");
+        setNodeColor.setOnAction(e -> {
+            Color newColor = promptColor(node.getNodeColor());
+            if(newColor != null) {
+                node.setNodeColor(newColor);
+            }
+            updateGuiFunction.run();
+        });
+
+        // set node color shallow
+        MenuItem setNodeColorShallow = new MenuItem("Set Node Color Shallow...");
+        setNodeColorShallow.setOnAction(e -> {
+            Color newColor = promptColor(node.getNodeColor());
+            if(newColor != null) {
+                node.setNodeColor(newColor);
+                ArrayList<VisualTreeItem> children = node.getChildren();
+                for(VisualTreeItem child : children) {
+                    child.setNodeColor(newColor);
+                }
+                updateGuiFunction.run();
+            }
+        });
+
+        // set node color deep
+        MenuItem setNodeColorDeep = new MenuItem("Set Node Color Deep...");
+        setNodeColorDeep.setOnAction(e -> {
+            Color newColor = promptColor(node.getNodeColor());
+            if(newColor != null) {
+                ArrayList<VisualTreeItem> descendants = node.getBranchNodes(new ArrayList<>(), node);
+                for(VisualTreeItem n : descendants) {
+                    n.setNodeColor(newColor);
+                }
+                updateGuiFunction.run();
+            }
+        });
+
+
+        // set sibling group color
+        MenuItem setSiblingColor = new MenuItem("Set Sibling Group Color...");
+        setSiblingColor.setOnAction(e -> {
+            Color newColor = promptColor(node.getNodeColor());
+            if(newColor != null) {
+                ArrayList<WBSVisualTreeItem> siblings = node.getParent().getChildren();  // don't null check parent
+                for(WBSVisualTreeItem sibling : siblings) {
+                    sibling.setNodeColor(newColor);
+                }
+                updateGuiFunction.run();
+            }
+        });
+
+
+        // shift node out
+        MenuItem shiftOut = new MenuItem("Shift Out");
+        shiftOut.setOnAction(e -> {
+            node.shiftNodeOut();
+            updateGuiFunction.run();
+        });
+
+        // shift node in
+        MenuItem shiftIn = new MenuItem("Shift In");
+        shiftIn.setOnAction(e -> {
+            node.shiftNodeIn();
+            updateGuiFunction.run();
+        });
 
         // shift up
         MenuItem shiftUp = new MenuItem("Shift Up");
@@ -179,63 +328,11 @@ public class TreeContextMenu {
         // move into parent
         MenuItem swapParent = new MenuItem("Move Into Parent...");
         swapParent.setOnAction(e -> {
-            Stage window = new Stage();
-            window.setTitle("Choose New Parent");
-            window.initModality(Modality.APPLICATION_MODAL); //Block events to other windows
-
-            VBox rootLayout = new VBox();
-            rootLayout.setPadding(new Insets(10, 10, 10, 10));
-            rootLayout.setSpacing(10);
-
-            Label title = new Label("New Parent:");
-            ComboBox<VisualTreeItem> itemSelector = new ComboBox<>();
-            Callback<ListView<VisualTreeItem>, ListCell<VisualTreeItem>> cellFactory = new Callback<>() {  // set custom view of node
-                @Override
-                public ListCell<VisualTreeItem> call(ListView<VisualTreeItem> l) {
-                    return new ListCell<>() {
-                        @Override
-                        protected void updateItem(VisualTreeItem item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (item == null || empty) {
-                                setGraphic(null);
-                            } else {
-                                setText(item.getNodeName() + " (Level: " + item.getLevel() + ")");
-                            }
-                        }
-                    };
-                }
-            };
-            itemSelector.setButtonCell(cellFactory.call(null));
-            itemSelector.setCellFactory(cellFactory);
-
-            itemSelector.getItems().addAll(node.getTreeNodes());
-
-            Pane vSpacer = new Pane();
-            vSpacer.setMaxHeight(Double.MAX_VALUE);
-            VBox.setVgrow(vSpacer, Priority.ALWAYS);
-
-            Button okButton = new Button("Ok");
-            okButton.setOnAction(ee -> {
-                VisualTreeItem newParent = itemSelector.getValue();
+            VisualTreeItem newParent = promptParent(node);
+            if(newParent != null) {
                 node.setParent(newParent);
-                window.close();
                 updateGuiFunction.run();
-            });
-            Pane spacer = new Pane();
-            spacer.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            Button cancelButton = new Button("Cancel");
-            cancelButton.setOnAction(ee -> {
-                window.close();
-            });
-            HBox closeView = new HBox();
-            closeView.getChildren().addAll(cancelButton, spacer, okButton);
-
-            rootLayout.getChildren().addAll(title, itemSelector, vSpacer, closeView);
-
-            Scene scene = new Scene(rootLayout);
-            window.setScene(scene);
-            window.showAndWait();
+            }
         });
 
 
@@ -335,7 +432,13 @@ public class TreeContextMenu {
             addSibling.setDisable(node.getParent() == null);
             copy.setDisable(node.getParent() == null);
             deepCopy.setDisable(node.getParent() == null);
-            setColor.setDisable(node.getParent() == null);
+            duplicateIntoParent.setDisable(node.getParent() == null);
+            setNodeColor.setDisable(node.getParent() == null);
+            setNodeColorShallow.setDisable(node.getParent() == null);
+            setNodeColorDeep.setDisable(node.getParent() == null);
+            setSiblingColor.setDisable(node.getParent() == null);
+            shiftOut.setDisable(node.getParent() == null || node.getParent().getParent() == null);
+            shiftIn.setDisable(node.getParent() == null || node.getParent().getChildren().indexOf(this) == node.getParent().getChildren().size() - 1);
             shiftUp.setDisable(node.getParent() == null);
             shiftDown.setDisable(node.getParent() == null);
             bringToTop.setDisable(node.getParent() == null);
@@ -354,9 +457,15 @@ public class TreeContextMenu {
             addSibling,
             copy,
             deepCopy,
+            duplicateIntoParent,
             new SeparatorMenuItem(),
-            setColor,
+            setNodeColor,
+            setNodeColorShallow,
+            setNodeColorDeep,
+            setSiblingColor,
             new SeparatorMenuItem(),
+            shiftOut,
+            shiftIn,
             shiftUp,
             shiftDown,
             bringToTop,
