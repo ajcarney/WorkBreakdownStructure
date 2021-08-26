@@ -8,10 +8,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.WorkbookUtil;
+import org.apache.poi.xssf.usermodel.*;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -19,6 +26,7 @@ import org.jdom2.output.XMLOutputter;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -63,6 +71,101 @@ public class ExportHandler {
     static public int exportWBSToXLSX(WBSVisualTreeItem wbs, File file) {
         try {
             // TODO: Implement
+            // set up document
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            String safeName = WorkbookUtil.createSafeSheetName(file.getName().replaceFirst("[.][^.]+$", "")); // TODO: validate this regex
+            XSSFSheet sheet = workbook.createSheet(safeName);
+
+
+            // create array of all elements
+            ArrayList<WBSVisualTreeItem> nodes = wbs.getTreeNodes();
+            int deepestLevel = 0;
+            for(WBSVisualTreeItem node : nodes) {
+                if(node.getLevel() > deepestLevel) {
+                    deepestLevel = node.getLevel();
+                }
+            }
+//            deepestLevel += 1;  // add one so header appears after
+
+            int rowIndex = 0;
+            for(WBSVisualTreeItem node : nodes) {
+                Row row = sheet.createRow(rowIndex);
+                if(node.getLevel() == 0) {
+                    row.createCell(0).setCellValue("ID");
+                    row.createCell(1).setCellValue("Item Name");
+                    row.createCell(deepestLevel + 1).setCellValue("Duration (hrs)");
+                    row.createCell(deepestLevel + 2).setCellValue("Person Duration Hours");
+                    row.createCell(deepestLevel + 3).setCellValue("Resources");
+                    row.createCell(deepestLevel + 4).setCellValue("Predecessors");
+                    row.createCell(deepestLevel + 5).setCellValue("Notes 1");
+                    row.createCell(deepestLevel + 6).setCellValue("Notes 2");
+                } else {
+                    int beforePadding = node.getLevel();
+                    int afterPadding = deepestLevel;
+
+                    Color cellColor = node.getNodeColor();
+                    XSSFCellStyle style = workbook.createCellStyle();
+                    style.setFillForegroundColor(new XSSFColor(new java.awt.Color((float) (cellColor.getRed()), (float) (cellColor.getGreen()), (float) (cellColor.getBlue())), new DefaultIndexedColorMap()));
+
+                    Cell cellShortName = row.createCell(0);
+                    cellShortName.setCellValue(rowIndex);
+                    cellShortName.setCellStyle(style);
+
+                    Cell cellName = row.createCell(beforePadding);
+                    cellName.setCellValue(node.getNodeName());
+                    cellName.setCellStyle(style);
+
+                    Cell cellDuration = row.createCell(afterPadding + 1);
+                    cellDuration.setCellValue(node.getDuration());
+                    cellDuration.setCellStyle(style);
+
+                    Cell cellPersonDuration = row.createCell(afterPadding + 2);
+                    cellPersonDuration.setCellValue(node.getPersonDuration());
+                    cellPersonDuration.setCellStyle(style);
+
+                    Cell cellResource = row.createCell(afterPadding + 3);
+                    cellResource.setCellValue(node.getResource());
+                    cellResource.setCellStyle(style);
+
+
+                    String predecessors = "";
+                    for(int uid : node.getPredecessors()) {
+                        predecessors += node.getNodeByUid(uid).getShortName() + ", ";
+                    }
+                    if(node.getPredecessors().size() > 0) {  // remove last two characters of string because they will just be a string and a comma
+                        predecessors = predecessors.substring(0, predecessors.length() - 2);
+                    }
+                    Cell cellPredecessors = row.createCell(afterPadding + 4);
+                    cellPredecessors.setCellValue(predecessors);
+                    cellPredecessors.setCellStyle(style);
+
+
+                    Cell cellNotes1 = row.createCell(afterPadding + 5);
+                    cellNotes1.setCellValue(node.getNotes1());
+                    cellNotes1.setCellStyle(style);
+
+                    Cell cellNotes2 = row.createCell(afterPadding + 6);
+                    cellNotes2.setCellValue(node.getNotes2());
+                    cellNotes2.setCellStyle(style);
+
+                }
+
+                rowIndex += 1;
+            }
+
+            for(int i=deepestLevel; i<=deepestLevel + 6; i++) {  // resize data starting from last name level to notes2
+                sheet.autoSizeColumn(i);
+            }
+
+            for(int i=1; i<deepestLevel; i++) {  // make name columns short from start of node names to one before last node name
+                sheet.setColumnWidth(i, 1000);
+            }
+
+            // write file
+            System.out.println("Exporting to " + file.getAbsolutePath());
+            OutputStream fileOut = new FileOutputStream(file);
+            workbook.write(fileOut);
+            fileOut.close();
 
             return 1;
         } catch(Exception e) {  // TODO: add better error handling and bring up an alert box
