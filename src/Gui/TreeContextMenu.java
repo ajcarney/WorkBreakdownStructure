@@ -2,14 +2,15 @@ package Gui;
 
 import WBSData.VisualTreeItem;
 import WBSData.WBSVisualTreeItem;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -18,6 +19,25 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TreeContextMenu {
+    class Divider extends CustomMenuItem {
+        Divider(ContextMenu parent) {
+            Separator divider = new Separator();
+            divider.setOrientation(Orientation.HORIZONTAL);
+//            divider.setMaxWidth(Double.MAX_VALUE);
+            divider.setHalignment(HPos.CENTER);
+            divider.setFocusTraversable(false);
+//            divider.setStyle("-fx-border-color:#D2691E; -fx-border-width: 3;");
+
+//            String cssLayout = "-fx-border-color: black;\n" +
+//                    "-fx-border-insets: 0;\n" +
+//                    "-fx-border-width: 2;\n";
+//            divider.setStyle(cssLayout);
+            Line line = new Line(0, 0, 100, 0);
+            line.endXProperty().bind(parent.prefWidthProperty());
+            setContent(line);
+        }
+    }
+
     private final ContextMenu contextMenu;
 
     public TreeContextMenu() {
@@ -219,6 +239,9 @@ public class TreeContextMenu {
         });
 
 
+        // color sub menu
+        Menu color = new Menu("Node Coloring");
+
         // set node color
         MenuItem setNodeColor = new MenuItem("Set Node Color...");
         setNodeColor.setOnAction(e -> {
@@ -270,6 +293,11 @@ public class TreeContextMenu {
             }
         });
 
+        color.getItems().addAll(setNodeColor, setNodeColorShallow, setNodeColorDeep, setSiblingColor);
+
+
+        // shift sub menu
+        Menu shift = new Menu("Shift");
 
         // shift node out
         MenuItem shiftOut = new MenuItem("Shift Out");
@@ -312,6 +340,8 @@ public class TreeContextMenu {
             node.bringNodeToFront();
             updateGuiFunction.run();
         });
+
+        shift.getItems().addAll(shiftOut, shiftIn, shiftUp, shiftDown, bringToTop, bringToBottom);
 
 
         // breakout
@@ -458,26 +488,19 @@ public class TreeContextMenu {
             copy,
             deepCopy,
             duplicateIntoParent,
-            new SeparatorMenuItem(),
-            setNodeColor,
-            setNodeColorShallow,
-            setNodeColorDeep,
-            setSiblingColor,
-            new SeparatorMenuItem(),
-            shiftOut,
-            shiftIn,
-            shiftUp,
-            shiftDown,
-            bringToTop,
-            bringToBottom,
-            new SeparatorMenuItem(),
+            new Divider(contextMenu),
+            color,
+            new Divider(contextMenu),
+            shift,
+            new Divider(contextMenu),
             breakout,
             swapParent,
-            new SeparatorMenuItem(),
+            new Divider(contextMenu),
             deleteNode,
             deepDeleteNode,
             deleteDescendants
         );
+        contextMenu.setPrefWidth(contextMenu.prefWidth(-1));  // needed so divider objects can compute the correct size
 
 
         return contextMenu;
