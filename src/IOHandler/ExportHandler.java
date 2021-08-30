@@ -14,8 +14,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.*;
@@ -26,6 +24,7 @@ import org.jdom2.output.XMLOutputter;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,15 +39,84 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ExportHandler {
     /**
+     * Forces a file to have a specific extension. Returns a new file object with the specified extension.
+     * Checks if the file absolute path ends with ".extension" and if not adds it
+     *
+     * @param file      the file to check
+     * @param extension the extension to force
+     * @return          a file object with the extension at the end
+     */
+    static private File forceExtension(File file, String extension) {
+        String path = file.getAbsolutePath();
+        if(!path.endsWith(extension)) {
+            path += extension;
+            return new File(path);
+        }
+
+        return file;
+    }
+
+    /**
      * Saves a wbs to a csv file that includes the wbs metadata
      *
      * @param wbs    the wbs to export
-     * @param file      the file to save the csv file to  TODO: add validation that the file is in fact .csv
+     * @param file      the file to save the csv file to
      * @return          1 on success, 0 on error
      */
     static public int exportWBSToCSV(WBSVisualTreeItem wbs, File file) {
         try {
-            // TODO: implement
+            String csv = "";
+
+            // create array of all elements
+            ArrayList<WBSVisualTreeItem> nodes = wbs.getTreeNodes();
+            int deepestLevel = 0;
+            for(WBSVisualTreeItem node : nodes) {
+                if(node.getLevel() > deepestLevel) {
+                    deepestLevel = node.getLevel();
+                }
+            }
+
+            int rowIndex = 0;
+            for(WBSVisualTreeItem node : nodes) {
+                String row = "";
+                if(node.getLevel() == 0) {
+                    row += "ID,Item Name,Duration (hrs),Person Duration Hours,Resources,Predecessors,Notes 1,Notes 2";
+                } else {
+                    String predecessors = "";
+                    for(int uid : node.getPredecessors()) {
+                        predecessors += node.getNodeByUid(uid).getShortName() + ", ";
+                    }
+                    if(node.getPredecessors().size() > 0) {  // remove last two characters of string because they will just be a string and a comma
+                        predecessors = predecessors.substring(0, predecessors.length() - 2);
+                    }
+
+                    String padding = "";
+                    for(int i=0; i<node.getLevel(); i++) {
+                        padding += "  ";
+                    }
+
+                    row += (rowIndex
+                            + "," + padding + node.getNodeName()
+                            + "," + node.getDuration()
+                            + "," + node.getPersonDuration()
+                            + "," + node.getResource()
+                            + "," + predecessors
+                            + "," + node.getNotes1()
+                            + "," + node.getNotes2()
+                            + "\n"
+                    );
+                }
+
+                csv += row;
+                rowIndex += 1;
+            }
+
+            // write file
+            file = forceExtension(file, ".csv");
+            System.out.println("Exporting to " + file.getAbsolutePath());
+            FileWriter writer = new FileWriter(file);
+            writer.write(csv);
+            writer.close();
 
             return 1;
         } catch(Exception e) {  // TODO: add better error handling and bring up an alert box
@@ -65,12 +133,11 @@ public class ExportHandler {
      * so that the sizing for it is not impacted by the wbs metadata
      *
      * @param wbs    the wbs to export
-     * @param file      A File object of the location of the .xlsx file  TODO: add validation that it is a .xlsx file
+     * @param file      A File object of the location of the .xlsx file
      * @return          1 on success, 0 on error
      */
     static public int exportWBSToXLSX(WBSVisualTreeItem wbs, File file) {
         try {
-            // TODO: Implement
             // set up document
             XSSFWorkbook workbook = new XSSFWorkbook();
             String safeName = WorkbookUtil.createSafeSheetName(file.getName().replaceFirst("[.][^.]+$", "")); // TODO: validate this regex
@@ -162,6 +229,7 @@ public class ExportHandler {
             }
 
             // write file
+            file = forceExtension(file, ".xlsx");
             System.out.println("Exporting to " + file.getAbsolutePath());
             OutputStream fileOut = new FileOutputStream(file);
             workbook.write(fileOut);
@@ -224,13 +292,14 @@ public class ExportHandler {
      * Saves the wbs to an xml file specified by the caller of the function. Clears
      * the wbs's wasModifiedFlag
      *
-     * @param wbs    the wbs to save
+     * @param wbs       the wbs to save
      * @param file      the file to save the wbs to
      * @return          1 on success, 0 on error
      */
     static public int saveWBSToFile(WBSVisualTreeItem wbs, File file) {
         try {
-            // TODO: implement
+            file = forceExtension(file, ".wbs");
+
             Element rootXMLNode = parseNodes(null, wbs);
             Document doc = new Document(rootXMLNode);
 

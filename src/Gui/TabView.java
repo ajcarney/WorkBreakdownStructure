@@ -110,7 +110,6 @@ public class TabView {
             if(!WBSHandler.isWBSSaved(WBSUid)) {
                 focusTab(WBSHandler.getWBSSaveFile(WBSUid));
                 int selection = ExportHandler.promptSave(WBSHandler.getWBSSaveFile(WBSUid).getAbsolutePath());
-                // TODO: add alert box that opens asking if you want to save before closing the tab
 
                 // 0 = close the tab, 1 = save and close, 2 = don't close
                 if(selection == 2) {  // user doesn't want to close the pane so consume the event
